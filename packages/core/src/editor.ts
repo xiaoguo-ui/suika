@@ -64,13 +64,21 @@ export class SuikaEditor {
   viewportManager: ViewportManager;
 
   canvasDragger: CanvasDragger;
+  /**
+   * 工具管理器
+   */
   toolManager: ToolManager;
   commandManager: CommandManager;
   zoomManager: ZoomManager;
   imgManager: ImgManager;
-
+  /**
+   * 光标管理器
+   */
   cursorManager: CursorManger;
   mouseEventManager: MouseEventManager;
+  /**
+   * 快捷键管理器
+   */
   keybindingManager: KeyBindingManager;
   hostEventManager: HostEventManager;
   clipboard: ClipboardManager;
@@ -246,7 +254,11 @@ export class SuikaEditor {
     const zoom = this.zoomManager.getZoom();
     return size * zoom;
   }
-  /** get cursor viewport xy */
+  /**
+   * 目的：为了将浏览器事件坐标转换为画布坐标系下的坐标
+   * @param event 鼠标事件
+   * @returns 视口坐标
+   */
   getCursorXY(event: { clientX: number; clientY: number }) {
     return {
       x: event.clientX - this.setting.get('offsetX'),

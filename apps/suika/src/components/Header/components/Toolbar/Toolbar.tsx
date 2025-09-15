@@ -29,6 +29,7 @@ export const ToolBar = () => {
   const editor = useContext(EditorContext);
   const intl = useIntl();
   const [currTool, setCurrTool] = useState('');
+  /** 可使用工具列表 */
   const [enableTools, setEnableTools] = useState<string[]>([]);
   const [isPathEditorActive, setIsPathEditorActive] = useState(false);
 

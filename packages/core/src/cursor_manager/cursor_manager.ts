@@ -74,7 +74,10 @@ export class CursorManger {
 
     return cursor;
   }
-
+  /**
+   * 设置光标
+   * @param cursor 光标
+   */
   setCursor(cursor: ICursor) {
     cursor = this.normalizeCursor(cursor);
     if (isEqual(cursor, this.cursor)) {

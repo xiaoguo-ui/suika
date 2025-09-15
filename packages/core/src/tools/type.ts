@@ -41,7 +41,7 @@ export interface IBaseTool {
 }
 
 export interface IToolClassConstructor {
-  new (editor: SuikaEditor): ITool;
-  type: string;
-  hotkey: string | IKey;
+  new (editor: SuikaEditor): ITool; // 工具构造函数
+  type: string; // 工具类型
+  hotkey: string | IKey; // 快捷键
 }

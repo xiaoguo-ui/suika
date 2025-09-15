@@ -711,7 +711,8 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
   }
 
   toSVGSegment(offset?: IPoint) {
-    const tagHead = this.getSVGTagHead(offset);
+    const tagHead = this.getSVGTagHead();
+    console.log(offset);
     if (!tagHead) {
       console.warn(
         `please implement getSVGTagHead method of "${this.type}" type`,
