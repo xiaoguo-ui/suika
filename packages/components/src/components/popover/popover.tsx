@@ -26,7 +26,11 @@ interface PopoverProps {
   trigger?: 'click' | 'hover';
   offset?: OffsetOptions;
 }
-
+/**
+ * 弹出框组件
+ * @param props
+ * @returns
+ */
 export const Popover: FC<PopoverProps> = (props) => {
   const {
     content,

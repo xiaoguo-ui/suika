@@ -14,10 +14,15 @@ interface IProps {
 export const Header: FC<IProps> = ({ title }) => {
   return (
     <div className="sk-header">
+      {/* 工具栏 */}
       <ToolBar />
+      {/* 标题 */}
       <Title value={title} />
+      {/* 右侧区域 */}
       <div className="sk-right-area">
+        {/* 语言选择器 */}
         <LocaleSelector />
+        {/* 缩放操作 */}
         <ZoomActions />
       </div>
     </div>

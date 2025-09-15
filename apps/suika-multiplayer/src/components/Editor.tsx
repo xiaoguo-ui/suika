@@ -21,6 +21,7 @@ const leftRightMargin = 240 * 2;
 const Editor: FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // 保存编辑器实例
   const [editor, setEditor] = useState<SuikaEditor | null>(null);
 
   const [viewWidth, setViewWidth] = useState(0);
@@ -59,7 +60,9 @@ const Editor: FC = () => {
     );
   }, [containerRef]);
 
+  // 初始化编辑器
   const initEditor = (fileId: string) => {
+    // 容器初始化未成功
     if (!containerRef.current) return;
     const width = document.body.clientWidth - leftRightMargin;
     const height = document.body.clientHeight - topMargin;
@@ -109,6 +112,7 @@ const Editor: FC = () => {
   return (
     <div>
       <EditorContext.Provider value={editor}>
+        {/* 头部组件 */}
         <Header title={title} />
         {/* body */}
         <div className="body">

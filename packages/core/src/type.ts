@@ -38,10 +38,13 @@ export enum GraphicsType {
  */
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+/**
+ * 编辑器图纸数据
+ */
 export interface IEditorPaperData {
-  appVersion: string;
-  paperId: string;
-  data: GraphicsAttrs[];
+  appVersion: string; // 应用版本
+  paperId: string; // 图纸 id
+  data: GraphicsAttrs[]; // 图纸数据
 }
 
 export interface IVerticalLine {

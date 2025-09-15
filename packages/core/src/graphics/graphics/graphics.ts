@@ -104,6 +104,10 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     this.noCollectUpdate = Boolean(opts?.noCollectUpdate);
   }
 
+  /**
+   * 获取图形属性
+   * @returns 图形属性
+   */
   getAttrs(): ATTRS {
     return cloneDeep(this.attrs);
   }
@@ -795,7 +799,7 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return content;
   }
 
-  protected getSVGTagHead(_offset?: IPoint) {
+  protected getSVGTagHead() {
     return '';
   }
 

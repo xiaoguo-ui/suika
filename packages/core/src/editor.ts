@@ -109,7 +109,7 @@ export class SuikaEditor {
       height: 0,
     });
     this.doc.setEditor(this);
-
+    // 场景图
     this.sceneGraph = new SceneGraph(this);
 
     this.cursorManager = new CursorManger(this);
@@ -178,6 +178,10 @@ export class SuikaEditor {
     });
   }
 
+  /**
+   * 设置编辑器内容
+   * @param data
+   */
   setContents(data: IEditorPaperData) {
     this.sceneGraph.load(data.data);
     this.commandManager.clearRecords();

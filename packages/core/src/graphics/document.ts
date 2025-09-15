@@ -25,13 +25,25 @@ interface Events {
 export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
   override type = GraphicsType.Document;
   protected override isContainer = true;
-
+  /**
+   * 图形存储管理器
+   */
   graphicsStoreManager = new GraphicsStoreManager();
   private emitter = new EventEmitter<Events>();
 
   private changes = {
+    /**
+     * 记录新添加的图形对象
+     * 数据结构：Map（键为图形ID，值为图形属性）
+     */
     added: new Map<string, GraphicsAttrs>(),
+    /**
+     * 记录被删除的图形ID
+     */
     deleted: new Set<string>(),
+    /**
+     * 被更新的图形ID
+     */
     updatedIds: new Set<string>(),
   };
 
@@ -78,10 +90,16 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
   getCurrCanvas() {
     return this.graphicsStoreManager.getCanvas();
   }
-
+  /**
+   * 添加图形
+   * @param graphics 图形
+   */
   addGraphics(graphics: SuikaGraphics) {
+    // 添加图形
     this.graphicsStoreManager.add(graphics);
+    // 记录新添加的图形对象
     this.changes.added.set(graphics.attrs.id, graphics.getAttrs());
+    // 触发场景变化
     this.emitSceneChangeThrottle();
   }
 
@@ -101,26 +119,39 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     this.changes.updatedIds.add(id);
     this.emitSceneChangeThrottle();
   }
-
+  /**
+   * 刷新更改
+   * @returns 更改
+   */
   flushChanges() {
+    // 记录被更新的图形对象
     const updates = new Map<string, Partial<GraphicsAttrs>>();
+    // 遍历被更新的图形ID
     for (const id of this.changes.updatedIds) {
+      // 获取图形对象
       const graphics = this.getGraphicsById(id);
+      // 如果图形对象不存在，则抛出警告
       if (!graphics) {
         console.warn(`graphics ${id} is lost!`);
         continue;
       }
+      // 记录被更新的图形对象
       updates.set(id, graphics.getUpdatedAttrs());
     }
+    // 变化的值的状态
     const changes = {
       added: this.changes.added,
       deleted: this.changes.deleted,
       update: updates,
     };
+    // 清除更改
     this.clearChanges();
+    // 变化
     return changes;
   }
-
+  /**
+   * 重置更改
+   */
   private clearChanges() {
     this.changes = {
       added: new Map(),
@@ -128,10 +159,13 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
       updatedIds: new Set(),
     };
   }
-
+  /**
+   * 触发场景变化
+   */
   private emitSceneChangeThrottle = throttle(
     () => {
       const changes = this.flushChanges();
+      // 触发场景变化事件
       this.emitter.emit('sceneChange', changes, 'unknown');
     },
     100,

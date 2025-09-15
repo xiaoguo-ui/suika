@@ -145,7 +145,9 @@ export const ToolBar = () => {
 
   return (
     <div className="suika-tool-bar">
+      {/* 菜单 */}
       <Menu />
+      {/* 工具按钮 */}
       {enableTools.map((toolType) => {
         const tool = keyMap[toolType];
         return (

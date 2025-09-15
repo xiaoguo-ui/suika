@@ -51,6 +51,10 @@ export class SceneGraph {
     this.grid = new Grid(editor);
   }
 
+  /**
+   * 添加图形
+   * @param graphicsArr 图形数组
+   */
   addItems(graphicsArr: SuikaGraphics[]) {
     for (const graphics of graphicsArr) {
       this.editor.doc.addGraphics(graphics);
@@ -260,16 +264,24 @@ export class SceneGraph {
     };
     return JSON.stringify(paperData);
   }
-
+  /**
+   * 创建图形数组
+   * @param data 图形数据
+   * @returns 图形数组
+   */
   createGraphicsArr(data: GraphicsAttrs[]) {
     const children: SuikaGraphics[] = [];
+    // 创建图形数组
     for (const attrs of data) {
+      // 获取图形类型
       const type = attrs.type;
+      // 获取图形构造函数
       const Ctor = graphCtorMap[type!];
       if (!Ctor) {
         console.error(`Unsupported graphics type "${attrs.type}", ignore it`);
         continue;
       }
+      // 创建图形
       children.push(new Ctor(attrs as any, { doc: this.editor.doc }));
     }
     return children;
@@ -288,12 +300,21 @@ export class SceneGraph {
     }
   }
 
+  /**
+   * 加载图纸数据
+   * @param info 图纸数据
+   * @param isApplyChanges 是否应用更改
+   */
   load(info: GraphicsAttrs[], isApplyChanges?: boolean) {
+    // 获取图形数组
     const graphicsArr = this.createGraphicsArr(info);
+    // 如果不需要应用更改，则清空文档中的图形
     if (!isApplyChanges) {
       this.editor.doc.clear();
     }
+    // 添加图形
     this.addItems(graphicsArr);
+    // 初始化图形树
     this.initGraphicsTree(graphicsArr);
   }
 

@@ -8,6 +8,9 @@ import { Popover } from '../popover';
 import { DropdownItem } from './dropdown-item';
 import { type DropdownDivider, type DropdownEvents, type Item } from './type';
 
+/**
+ * 下拉菜单组件Props
+ */
 export interface IDropdownProps {
   items: Item[];
   onClick?: (params: { key: string }) => boolean | void;
@@ -21,10 +24,19 @@ export interface IDropdownProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+/**
+ * 判断是否为分割线
+ * @param item
+ * @returns
+ */
 const isDivider = (item: Item): item is DropdownDivider => {
   return (item as DropdownDivider).type === 'divider';
 };
-
+/**
+ * 下拉菜单组件
+ * @param props
+ * @returns
+ */
 export const Dropdown: FC<IDropdownProps> = (props) => {
   const { items, children, placement = 'bottom-start' } = props;
   const [open, setOpen] = useState(false);

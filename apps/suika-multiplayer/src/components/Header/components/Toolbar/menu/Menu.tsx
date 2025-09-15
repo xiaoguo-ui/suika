@@ -71,12 +71,20 @@ export const Menu: FC = () => {
     },
   ];
 
+  /**
+   * 处理下拉菜单点击事件
+   * @param params
+   * @returns
+   */
   const handleClick = ({ key }: { key: string }) => {
+    // 如果编辑器不存在，则返回
     if (!editor) return;
 
+    // 是否阻止关闭下拉菜单
     let preventClose = false;
 
     switch (key) {
+      // 导入本地文件
       case 'import':
         importService.importOriginFile(editor);
         break;

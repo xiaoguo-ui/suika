@@ -192,7 +192,7 @@ export class SuikaRegularPolygon extends SuikaGraphics<RegularPolygonAttrs> {
     super.updateAttrs(partialAttrs, options);
   }
 
-  override hitTest(point: IPoint, _padding?: number) {
+  override hitTest(point: IPoint) {
     // TODO: solve padding
     const tf = new Matrix(...this.getWorldTransform());
     const pt = tf.applyInverse(point);
