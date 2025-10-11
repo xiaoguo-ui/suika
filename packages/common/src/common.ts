@@ -147,7 +147,9 @@ export const shallowCompareArrays = (a1: unknown[], a2: unknown[]) => {
   }
   return true;
 };
-
+/**
+ * 获取设备像素比
+ */
 export const getDevicePixelRatio = () => {
   return window.devicePixelRatio || 1;
 };

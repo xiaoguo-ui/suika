@@ -46,9 +46,9 @@ interface Events {
 }
 
 export class SuikaEditor {
-  containerElement: HTMLDivElement;
-  canvasElement: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
+  containerElement: HTMLDivElement; // 画板容器
+  canvasElement: HTMLCanvasElement; // 画布元素
+  ctx: CanvasRenderingContext2D; // 画布上下文
 
   appVersion = 'suika-editor_0.0.2';
   paperId: string;
@@ -58,7 +58,9 @@ export class SuikaEditor {
   doc: SuikaDocument;
   sceneGraph: SceneGraph;
   controlHandleManager: ControlHandleManager;
-
+  /**
+   * 全局通用设置
+   */
   setting: Setting;
 
   viewportManager: ViewportManager;

@@ -11,12 +11,12 @@ export class Setting {
   private eventEmitter = new EventEmitter<Events>();
   private value = {
     /***** paint ****/
-    canvasBgColor: '#f4f4f4',
+    canvasBgColor: '#f4f4f4', // 画布背景颜色
     firstStroke: {
       type: PaintType.Solid,
       attrs: { r: 0, g: 0, b: 0, a: 1 },
     } as IPaint,
-    strokeWidth: 1,
+    strokeWidth: 1, // 画笔宽度
 
     firstFill: {
       type: PaintType.Solid,
@@ -179,7 +179,11 @@ export class Setting {
   getAttrs(): SettingValue {
     return { ...this.value };
   }
-
+  /**
+   * 监听设置变化
+   * @param eventName 事件名称
+   * @param handler 事件处理函数
+   */
   on<K extends keyof Events>(eventName: K, handler: Events[K]) {
     this.eventEmitter.on(eventName, handler);
   }
