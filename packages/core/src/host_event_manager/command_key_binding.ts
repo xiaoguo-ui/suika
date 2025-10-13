@@ -17,19 +17,22 @@ import { groupAndRecord } from '../service/group_and_record';
 import { AlignType, ArrangeType } from '../type';
 
 export class CommandKeyBinding {
+  // 判断是否绑定
   private isBound = false;
 
   constructor(private editor: SuikaEditor) {}
 
   bindKey() {
+    // 判断是否已经绑定
     if (this.isBound) {
       console.warn('CommandKeyBinding has been bound, please destroy it first');
       return;
     }
+    // 设置绑定状态：绑定过！
     this.isBound = true;
     const editor = this.editor;
 
-    // undo
+    // undo 撤销快捷键 快捷键：Command + Z (Mac) / Ctrl + Z (Windows)
     const undoAction = () => editor.commandManager.undo();
     editor.keybindingManager.register({
       key: { metaKey: true, keyCode: 'KeyZ' },
@@ -39,7 +42,7 @@ export class CommandKeyBinding {
       action: undoAction,
     });
 
-    // redo
+    // redo 重做快捷键 快捷键：Command + Shift + Z (Mac) / Ctrl + Shift + Z (Windows)
     const redoAction = () => editor.commandManager.redo();
     editor.keybindingManager.register({
       key: { metaKey: true, shiftKey: true, keyCode: 'KeyZ' },
@@ -49,7 +52,7 @@ export class CommandKeyBinding {
       action: redoAction,
     });
 
-    // delete
+    // delete 删除快捷键 快捷键：Backspace (Mac) / Delete (Windows)
     const deleteAction = () => {
       // TODO: 一些情况要考虑是否允许删除操作，以及允许删除的处理方案
       // 绘制图形中、对图形旋转或缩放时
@@ -64,7 +67,7 @@ export class CommandKeyBinding {
       action: deleteAction,
     });
 
-    // select all
+    // select all 全选快捷键 快捷键：Command + A (Mac) / Ctrl + A (Windows)
     const selectAllAction = () => {
       editor.selectedElements.selectAll();
       editor.render();
@@ -76,7 +79,7 @@ export class CommandKeyBinding {
       action: selectAllAction,
     });
 
-    // switch to default select tool
+    // switch to default select tool 切换到默认选择工具 快捷键：Escape
     // or cancel select(when in select tool)
     const setDefaultToolOrCancelSelectAction = () => {
       if (this.editor.toolManager.getActiveToolName() === 'select') {

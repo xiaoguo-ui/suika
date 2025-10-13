@@ -14,12 +14,12 @@ export interface IKey {
 }
 
 interface IWhenCtx {
-  isToolDragging: boolean;
+  isToolDragging: boolean; // 工具是否正在拖拽
 }
 
 interface IKeyBinding {
-  key: IKey | IKey[]; // 快捷键
-  winKey?: IKey | IKey[]; // 快捷键
+  key: IKey | IKey[]; // 快捷键(Mac系统)
+  winKey?: IKey | IKey[]; // 快捷键(Windows系统)
   when?: (ctx: IWhenCtx) => boolean; // 快捷键启动条件
   /**
    * action name (just for debug)
@@ -68,11 +68,14 @@ export class KeyBindingManager {
   private handleAction = (e: KeyboardEvent) => {
     // There are some default behaviors to prevent editor action
     // e.g. Windows press ALT will focus on browser menu bar, which make key press no effect
-    // 如果按下了 ALT 键，则阻止默认行为
+    // 为了防止浏览器的默认行为干扰编辑器的快捷键功能。
+    // 在 Windows 系统中，按下 ALT 键会自动聚焦到浏览器的菜单栏
+    // 这会导致后续的键盘快捷键组合失效
     if (e.altKey) {
       e.preventDefault();
     }
-    // 如果按下了输入框或文本框，则阻止默认行为
+    // 当用户在输入框或文本框中输入文字时，应该使用标准的文本编辑快捷键
+    // 不应该被编辑器的全局快捷键干扰
     if (
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement
@@ -86,7 +89,6 @@ export class KeyBindingManager {
     };
     // 遍历快捷键映射
     for (const keyBinding of this.keyBindingMap.values()) {
-      // match when
       // 检查快捷键启动条件
       if (!keyBinding.when || keyBinding.when(ctx)) {
         // match windows os
@@ -107,7 +109,7 @@ export class KeyBindingManager {
       if (isMatch) {
         e.preventDefault();
         console.log(`[${getKeyStr(e)}] => ${keyBinding.actionName}`);
-        // 调用快捷键动作
+        // 调用快捷键触发绑定的回调函数
         keyBinding.action(e);
         break;
       }
@@ -128,9 +130,10 @@ export class KeyBindingManager {
     if (Array.isArray(key)) {
       return key.some((k) => this.isKeyMatch(k, e));
     }
-
+    // 如果快捷键是*，则匹配任何键
     if (key.keyCode == '*') return true;
 
+    // 检查是否匹配快捷键
     const {
       ctrlKey = false,
       shiftKey = false,
@@ -148,7 +151,7 @@ export class KeyBindingManager {
   }
   /**
    * 注册快捷键
-   * @param keybinding 快捷键绑定
+   * @param keybinding 快捷键绑定对象
    * @returns 快捷键ID
    */
   register(keybinding: IKeyBinding) {
@@ -161,14 +164,20 @@ export class KeyBindingManager {
     return id;
   }
 
+  /**
+   * 注册快捷键，并设置优先级
+   * @param keybinding 快捷键绑定对象
+   * @returns
+   */
   registerWithHighPrior(keybinding: IKeyBinding) {
     const id = this.id;
-
+    // 创建新的快捷键映射
     const map = new Map<number, IKeyBinding>();
     map.set(id, keybinding);
 
+    // 添加现有的快捷键映射
     for (const [key, val] of this.keyBindingMap) {
-      map.set(key, val);
+      map.set(key, val); // 设置现有的快捷键映射
     }
     this.keyBindingMap = map;
     this.id++;

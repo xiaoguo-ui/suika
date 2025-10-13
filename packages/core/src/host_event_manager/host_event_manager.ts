@@ -48,6 +48,7 @@ export class HostEventManager {
     this.bindContextMenu();
 
     this.moveGraphsKeyBinding.bindKey();
+    // 绑定命令快捷键
     this.commandKeyBinding.bindKey();
   }
 

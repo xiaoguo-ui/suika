@@ -78,6 +78,7 @@ export class SuikaEditor {
    */
   cursorManager: CursorManger;
   mouseEventManager: MouseEventManager;
+
   /**
    * 快捷键管理器
    */
@@ -109,7 +110,10 @@ export class SuikaEditor {
     }
 
     this.mouseEventManager = new MouseEventManager(this);
+
+    // 快捷键管理器
     this.keybindingManager = new KeyBindingManager(this);
+    // 执行绑定事件
     this.keybindingManager.bindEvent();
 
     this.doc = new SuikaDocument({
