@@ -31,6 +31,12 @@ export const isPointEqual = (p1: IPoint, p2: IPoint, tol = TOL) => {
   return Math.abs(p1.x - p2.x) < tol && Math.abs(p1.y - p2.y) < tol;
 };
 
+/**
+ * 计算二维平面中两点之间的直线距离
+ * @param p1 点1
+ * @param p2 点2
+ * @returns 距离 d = √[(x₁ - x₂)² + (y₁ - y₂)²]
+ */
 export const distance = (p1: IPoint, p2: IPoint) => {
   return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
 };
