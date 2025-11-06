@@ -21,10 +21,13 @@ import { type ITool } from './type';
  * reference: https://mp.weixin.qq.com/s/lD1qlGus3pRvT5ZfdH0_lg
  */
 export abstract class DrawGraphicsTool implements ITool {
-  static readonly type: string = '';
-  static readonly hotkey: string = '';
-  readonly type: string = '';
-  readonly hotkey: string = '';
+  // 这个设计允许系统通过 DrawRectTool.hotkey 自动获取快捷键配置，无需手动硬编码。
+  static readonly type: string = ''; // 工具类型
+  static readonly hotkey: string = ''; // 工具快捷键
+
+  readonly type: string = ''; // 工具类型
+  readonly hotkey: string = ''; // 工具快捷键
+
   cursor: ICursor = 'crosshair';
   commandDesc = 'Add Graphics';
 

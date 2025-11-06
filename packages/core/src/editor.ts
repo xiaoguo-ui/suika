@@ -144,6 +144,7 @@ export class SuikaEditor {
     this.textEditor = new TextEditor(this);
     this.pathEditor = new PathEditor(this);
 
+    // 命令快捷键注册
     this.hostEventManager = new HostEventManager(this);
     this.hostEventManager.bindHotkeys();
 

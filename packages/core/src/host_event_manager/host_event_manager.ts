@@ -20,16 +20,16 @@ interface Events {
  * 3. 鼠标右键菜单
  */
 export class HostEventManager {
-  isShiftPressing = false;
-  isCtrlPressing = false;
-  isAltPressing = false;
-  isCommandPressing = false;
-  isSpacePressing = false;
-  isWheelBtnPressing = false;
+  isShiftPressing = false; // 是否按下 shift 键
+  isCtrlPressing = false; // 是否按下 ctrl 键
+  isAltPressing = false; // 是否按下 alt 键
+  isCommandPressing = false; // 是否按下 command 键
+  isSpacePressing = false; // 是否按下 space 键
+  isWheelBtnPressing = false; // 是否按下滚轮键
 
-  isDraggingCanvasBySpace = false;
-  isEnableDelete = true;
-  isEnableContextMenu = true;
+  isDraggingCanvasBySpace = false; // 是否按下 space 键拖拽画布
+  isEnableDelete = true; // 是否启用删除
+  isEnableContextMenu = true; // 是否启用右键菜单
   // isEnableMoveSelectedElementByKey = true; // no use now
 
   private moveGraphsKeyBinding: MoveGraphsKeyBinding;
@@ -43,21 +43,32 @@ export class HostEventManager {
     this.commandKeyBinding = new CommandKeyBinding(editor);
   }
   bindHotkeys() {
-    this.observeModifiersToggle(); // 记录 isShiftPressing 等值
+    // 监听 shift、alt、space 键的按下和释放事件
+    this.observeModifiersToggle();
+    // 绑定滚轮事件
     this.bindWheelEvent();
+    // 绑定右键菜单事件
     this.bindContextMenu();
-
+    // 绑定方向键移动快捷键
     this.moveGraphsKeyBinding.bindKey();
     // 绑定命令快捷键
     this.commandKeyBinding.bindKey();
   }
-
+  /**
+   * 监听 shift、alt、space 键的按下和释放事件
+   */
   private observeModifiersToggle() {
+    /**
+     * 监听 shift、alt、space 键的按下和释放事件
+     * @param event 键盘事件
+     */
     const handler = (event: KeyboardEvent) => {
+      // 记录按下前的状态
       const prevShift = this.isShiftPressing;
       const prevAlt = this.isAltPressing;
       const prevSpace = this.isSpacePressing;
 
+      // 记录当前状态
       this.isShiftPressing = event.shiftKey;
       this.isCtrlPressing = event.ctrlKey;
       this.isAltPressing = event.altKey;
@@ -66,20 +77,25 @@ export class HostEventManager {
         this.isSpacePressing = event.type === 'keydown';
       }
 
+      // 如果按下前的状态和当前状态不一致，则发出 shiftToggle、altToggle、spaceToggle 事件
       if (prevShift !== this.isShiftPressing) {
+        // 发出 shiftToggle 事件
         this.eventEmitter.emit('shiftToggle', this.isShiftPressing);
       }
       if (prevAlt !== this.isAltPressing) {
+        // 发出 altToggle 事件
         this.eventEmitter.emit('altToggle', this.isAltPressing);
       }
       if (prevSpace !== this.isSpacePressing) {
+        // 发出 spaceToggle 事件
         this.eventEmitter.emit('spaceToggle', this.isSpacePressing);
       }
     };
-
+    // 监听键盘按下和释放事件
     document.addEventListener('keydown', handler);
     document.addEventListener('keyup', handler);
 
+    // 解除绑定
     this.unbindHandlers.push(() => {
       document.removeEventListener('keydown', handler);
       document.removeEventListener('keyup', handler);
