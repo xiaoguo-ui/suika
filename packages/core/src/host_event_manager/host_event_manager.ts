@@ -39,7 +39,9 @@ export class HostEventManager {
   private unbindHandlers: Array<() => void> = [];
 
   constructor(private editor: SuikaEditor) {
+    // 绑定方向键移动快捷键
     this.moveGraphsKeyBinding = new MoveGraphsKeyBinding(editor);
+    // 绑定命令快捷键
     this.commandKeyBinding = new CommandKeyBinding(editor);
   }
   bindHotkeys() {

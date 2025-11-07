@@ -149,6 +149,7 @@ export class SuikaEditor {
     this.hostEventManager.bindHotkeys();
 
     this.canvasDragger = new CanvasDragger(this);
+    // 工具管理器
     this.toolManager = new ToolManager(this);
 
     this.clipboard = new ClipboardManager(this);

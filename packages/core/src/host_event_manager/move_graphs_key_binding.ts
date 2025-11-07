@@ -73,7 +73,7 @@ export class MoveGraphsKeyBinding {
       ArrowUp: false, // 是否按上方向键
       ArrowDown: false, // 是否按下下方向键
     };
-
+    // 检查是否按下方向键
     const checkPressed = () =>
       pressed.ArrowLeft ||
       pressed.ArrowRight ||

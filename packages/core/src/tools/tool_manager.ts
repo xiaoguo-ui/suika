@@ -98,7 +98,6 @@ export class ToolManager {
     this.registerToolCtor(DrawStarTool);
     // 注册铅笔工具
     this.registerToolCtor(PencilTool);
-
     // 设置可使用快捷键工具列表
     this.setEnableHotKeyTools([
       SelectTool.type, // 选择工具
@@ -157,7 +156,7 @@ export class ToolManager {
     if (this.toolCtorMap.has(type)) {
       console.warn(`tool "${type}" had exit, replace it!`);
     }
-    // 设置工具构造函数
+    // 保存工具构造函数
     this.toolCtorMap.set(type, toolCtor);
 
     // select and pathSelect tool has same hotkey
@@ -171,7 +170,7 @@ export class ToolManager {
       console.log(`${type} has no hotkey`);
       return;
     }
-    // 如果快捷键是字符串，则转换为keyCode
+    // 单字母快捷键，转换为keyCode
     if (typeof hotkey === 'string') {
       // 转换为keyCode
       keyCode = `Key${hotkey.toUpperCase()}`;
