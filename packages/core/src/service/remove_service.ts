@@ -7,11 +7,18 @@ import {
 } from '../graphics';
 import { getChildNodeSet, getParentIdSet, updateNodeSize } from '../utils';
 
+/**
+ * 从场景中移除图形并记录
+ * @param editor 编辑器
+ * @param graphicsArray 图形数组
+ */
 export const removeGraphicsAndRecord = (
   editor: SuikaEditor,
   graphicsArray: SuikaGraphics[],
 ) => {
+  // 需要移除的图形ID集合
   const removeIdSet = new Set<string>();
+  // 遍历图形数组
   for (const graphics of graphicsArray) {
     graphics.removeFromParent();
     graphics.setDeleted(true);

@@ -145,12 +145,19 @@ export class SelectedElements {
     this.eventEmitter.off(eventName, handler);
   }
 
+  /**
+   * 从场景中移除选中元素
+   */
   removeFromScene() {
+    // 如果选中元素为空，则返回
     if (this.isEmpty()) {
       return;
     }
+    // 从场景中移除选中元素
     removeGraphicsAndRecord(this.editor, this.items);
+    // 清空选中元素
     this.clear();
+    // 渲染画布
     this.editor.render();
   }
 

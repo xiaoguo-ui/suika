@@ -35,21 +35,21 @@ export class CommandKeyBinding {
     // undo 撤销快捷键 快捷键：Command + Z (Mac) / Ctrl + Z (Windows)
     const undoAction = () => editor.commandManager.undo();
     editor.keybindingManager.register({
-      key: { metaKey: true, keyCode: 'KeyZ' },
-      winKey: { ctrlKey: true, keyCode: 'KeyZ' },
-      when: (ctx) => !ctx.isToolDragging,
-      actionName: 'Undo',
-      action: undoAction,
+      key: { metaKey: true, keyCode: 'KeyZ' }, // Command + Z (Mac)
+      winKey: { ctrlKey: true, keyCode: 'KeyZ' }, // Ctrl + Z (Windows)
+      when: (ctx) => !ctx.isToolDragging, // 非拖拽状态下生效
+      actionName: 'Undo', // 撤销
+      action: undoAction, // 撤销操作
     });
 
     // redo 重做快捷键 快捷键：Command + Shift + Z (Mac) / Ctrl + Shift + Z (Windows)
     const redoAction = () => editor.commandManager.redo();
     editor.keybindingManager.register({
-      key: { metaKey: true, shiftKey: true, keyCode: 'KeyZ' },
-      winKey: { ctrlKey: true, shiftKey: true, keyCode: 'KeyZ' },
-      when: (ctx) => !ctx.isToolDragging,
-      actionName: 'Redo',
-      action: redoAction,
+      key: { metaKey: true, shiftKey: true, keyCode: 'KeyZ' }, // Command + Shift + Z (Mac)
+      winKey: { ctrlKey: true, shiftKey: true, keyCode: 'KeyZ' }, // Ctrl + Shift + Z (Windows)
+      when: (ctx) => !ctx.isToolDragging, // 非拖拽状态下生效
+      actionName: 'Redo', // 重做
+      action: redoAction, // 重做操作
     });
 
     // delete 删除快捷键 快捷键：Backspace (Mac) / Delete (Windows)
@@ -61,10 +61,10 @@ export class CommandKeyBinding {
       }
     };
     editor.keybindingManager.register({
-      key: [{ keyCode: 'Backspace' }, { keyCode: 'Delete' }],
-      when: (ctx) => !ctx.isToolDragging,
-      actionName: 'Delete',
-      action: deleteAction,
+      key: [{ keyCode: 'Backspace' }, { keyCode: 'Delete' }], // Backspace (Mac) / Delete (Windows)
+      when: (ctx) => !ctx.isToolDragging, // 非拖拽状态下生效
+      actionName: 'Delete', // 删除
+      action: deleteAction, // 删除操作
     });
 
     // select all 全选快捷键 快捷键：Command + A (Mac) / Ctrl + A (Windows)
@@ -73,62 +73,70 @@ export class CommandKeyBinding {
       editor.render();
     };
     editor.keybindingManager.register({
-      key: { metaKey: true, keyCode: 'KeyA' },
-      winKey: { ctrlKey: true, keyCode: 'KeyA' },
-      actionName: 'Select All',
-      action: selectAllAction,
+      key: { metaKey: true, keyCode: 'KeyA' }, // Command + A (Mac) / Ctrl + A (Windows)
+      winKey: { ctrlKey: true, keyCode: 'KeyA' }, // Ctrl + A (Windows)
+      actionName: 'Select All', // 全选
+      action: selectAllAction, // 全选操作
     });
 
     // switch to default select tool 切换到默认选择工具 快捷键：Escape
     // or cancel select(when in select tool)
     const setDefaultToolOrCancelSelectAction = () => {
+      // 如果当前工具是选择工具，则取消选择
       if (this.editor.toolManager.getActiveToolName() === 'select') {
         editor.selectedElements.clear();
       } else {
+        // 如果当前工具不是选择工具，则切换到选择工具
         this.editor.toolManager.setActiveTool('select');
       }
+      // 渲染编辑器
       editor.render();
     };
     editor.keybindingManager.register({
-      key: { keyCode: 'Escape' },
-      when: (ctx) => !ctx.isToolDragging,
-      actionName: 'Back to Select Tool or Cancel Select',
-      action: setDefaultToolOrCancelSelectAction,
+      key: { keyCode: 'Escape' }, // Escape
+      when: (ctx) => !ctx.isToolDragging, // 非拖拽状态下生效
+      actionName: 'Back to Select Tool or Cancel Select', // 返回选择工具或取消选择
+      action: setDefaultToolOrCancelSelectAction, // 返回选择工具或取消选择操作
     });
 
     /********** Ruler **********/
     // toggle ruler
     const toggleRulersAction = () => {
+      // 切换标尺
       editor.setting.set('enableRuler', !editor.setting.get('enableRuler'));
+      // 渲染编辑器
       editor.render();
     };
     editor.keybindingManager.register({
-      key: { shiftKey: true, keyCode: 'KeyR' },
-      actionName: 'Toggle Rulers',
-      action: toggleRulersAction,
+      key: { shiftKey: true, keyCode: 'KeyR' }, // Shift + R
+      actionName: 'Toggle Rulers', // 切换标尺
+      action: toggleRulersAction, // 切换标尺操作
     });
 
     /*************** Zoom **************/
     // zoom to fit
     const zoomToFitAction = () => {
-      editor.zoomManager.zoomToFit();
+      editor.zoomManager.zoomToFit(); // 缩放到适合
+      // 渲染编辑器
       editor.render();
     };
     editor.keybindingManager.register({
-      key: { shiftKey: true, keyCode: 'Digit1' },
-      actionName: 'Zoom To Fit',
-      action: zoomToFitAction,
+      key: { shiftKey: true, keyCode: 'Digit1' }, // Shift + 1
+      actionName: 'Zoom To Fit', // 缩放到适合
+      action: zoomToFitAction, // 缩放到适合
     });
 
     // zoom to selection
     const zoomToSelectionAction = () => {
+      // 缩放到选中
       editor.zoomManager.zoomToSelection();
+      // 渲染编辑器
       editor.render();
     };
     editor.keybindingManager.register({
-      key: { shiftKey: true, keyCode: 'Digit2' },
-      actionName: 'Zoom To Selection',
-      action: zoomToSelectionAction,
+      key: { shiftKey: true, keyCode: 'Digit2' }, // Shift + 2
+      actionName: 'Zoom To Selection', // 缩放到选中
+      action: zoomToSelectionAction, // 缩放到选中操作
     });
 
     // zoom in

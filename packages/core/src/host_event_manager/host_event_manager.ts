@@ -28,7 +28,8 @@ export class HostEventManager {
   isWheelBtnPressing = false; // 是否按下滚轮键
 
   isDraggingCanvasBySpace = false; // 是否按下 space 键拖拽画布
-  isEnableDelete = true; // 是否启用删除
+  // 是否启用删除
+  isEnableDelete = true;
   isEnableContextMenu = true; // 是否启用右键菜单
   // isEnableMoveSelectedElementByKey = true; // no use now
 

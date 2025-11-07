@@ -133,6 +133,7 @@ export class SuikaEditor {
     this.zoomManager = new ZoomManager(this);
     this.imgManager = new ImgManager();
 
+    // 选中元素管理器
     this.selectedElements = new SelectedElements(this);
     this.selectedBox = new SelectedBox(this);
     this.ruler = new Ruler(this);
