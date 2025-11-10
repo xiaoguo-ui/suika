@@ -114,7 +114,12 @@ export class SelectTool implements ITool {
     this.updateCursorAndHlHoverGraph.cancel();
     this.editor.render();
   }
-
+  /**
+   * 在画布外部时，更新鼠标光标和悬停元素
+   * @param e PointerEvent
+   * @param isOutsideCanvas 是否在画布外部
+   * @description 在画布外部时，更新鼠标光标和悬停元素
+   */
   onMoveExcludeDrag(e: PointerEvent, isOutsideCanvas: boolean) {
     if (isOutsideCanvas) return;
 

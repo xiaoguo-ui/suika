@@ -267,6 +267,7 @@ export class ToolManager {
         }
         // 设置按下状态
         isPressing = true;
+        // 设置左键标记
         startWithLeftMouse = true;
         // 检查是否设置了当前工具
         if (!this.currentTool) {

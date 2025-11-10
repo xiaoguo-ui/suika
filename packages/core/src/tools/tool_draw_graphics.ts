@@ -30,7 +30,9 @@ export abstract class DrawGraphicsTool implements ITool {
 
   cursor: ICursor = 'crosshair';
   commandDesc = 'Add Graphics';
-
+  /**
+   * 绘制的图形对象
+   */
   protected drawingGraphics: SuikaGraphics | null = null;
 
   private startPoint: IPoint = { x: -1, y: -1 };
@@ -43,7 +45,9 @@ export abstract class DrawGraphicsTool implements ITool {
    */
   private startPointWhenSpaceDown: IPoint | null = null;
   private lastDragPointWhenSpaceDown: IPoint | null = null;
-
+  /**
+   * 是否正在拖拽
+   */
   private isDragging = false;
   private unbindEvent: () => void = noop;
 
@@ -121,15 +125,24 @@ export abstract class DrawGraphicsTool implements ITool {
   onMoveExcludeDrag() {
     // do nothing;
   }
-
+  /**
+   * 开始绘制图形
+   * @param e PointerEvent
+   * @description 开始绘制图形
+   */
   onStart(e: PointerEvent) {
+    // 获取鼠标点击的起点
     this.startPoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
     );
+    // 重置绘制图形
     this.drawingGraphics = null;
+    // 重置拖拽状态
     this.isDragging = false;
+    // 重置临时起点
     this.startPointWhenSpaceDown = null;
+    // 重置临时拖拽点
     this.lastDragPointWhenSpaceDown = null;
   }
 

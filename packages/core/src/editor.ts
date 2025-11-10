@@ -274,9 +274,16 @@ export class SuikaEditor {
       y: event.clientY - this.setting.get('offsetY'),
     };
   }
-  /** get cursor scene xy */
+  /**
+   * 获取场景坐标
+   * @param event 事件对象
+   * @param round 是否四舍五入
+   * @returns 场景坐标
+   */
   getSceneCursorXY(event: { clientX: number; clientY: number }, round = false) {
+    // 获取视口坐标
     const { x, y } = this.getCursorXY(event);
+    // 转换为场景坐标
     return this.toScenePt(x, y, round);
   }
   render() {
