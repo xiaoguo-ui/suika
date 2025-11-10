@@ -72,7 +72,11 @@ export const drawLine = (
 };
 
 /**
- * 绘制时应用旋转
+ * @description 围绕指定点旋转 Canvas 的变换矩阵，而不是围绕画布原点 (0, 0) 旋转
+ * @param ctx Canvas 上下文对象
+ * @param angle 旋转角度，以弧度为单位
+ * @param cx 旋转中心点的 x 坐标
+ * @param cy 旋转中心点的 y 坐标
  */
 export const rotateInCanvas = (
   ctx: CanvasRenderingContext2D,
@@ -80,8 +84,11 @@ export const rotateInCanvas = (
   cx: number,
   cy: number,
 ) => {
+  // 将画布的原点移动到旋转中心点
   ctx.translate(cx, cy);
+  // 旋转画布
   ctx.rotate(angle);
+  // 将画布的原点移动到原来的位置
   ctx.translate(-cx, -cy);
 };
 

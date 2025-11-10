@@ -19,6 +19,9 @@ interface Events {
 export class CanvasDragger {
   private _active = false;
   private inactiveAfterPointerUp = false;
+  /**
+   * 是否启用画布拖拽
+   */
   private isEnableDragCanvasBySpace = true;
 
   private _isPressing = false;
@@ -100,9 +103,15 @@ export class CanvasDragger {
     }
   }
 
+  /**
+   * 启用画布拖拽
+   */
   enableDragBySpace() {
     this.isEnableDragCanvasBySpace = true;
   }
+  /**
+   * 禁用画布拖拽
+   */
   disableDragBySpace() {
     this.isEnableDragCanvasBySpace = false;
   }

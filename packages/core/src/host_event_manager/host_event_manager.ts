@@ -27,10 +27,18 @@ export class HostEventManager {
   isSpacePressing = false; // 是否按下 space 键
   isWheelBtnPressing = false; // 是否按下滚轮键
 
-  isDraggingCanvasBySpace = false; // 是否按下 space 键拖拽画布
-  // 是否启用删除
+  /**
+   * 是否正在拖拽画布
+   */
+  isDraggingCanvasBySpace = false;
+  /**
+   * 是否启用删除
+   */
   isEnableDelete = true;
-  isEnableContextMenu = true; // 是否启用右键菜单
+  /**
+   * 是否启用右键菜单
+   */
+  isEnableContextMenu = true;
   // isEnableMoveSelectedElementByKey = true; // no use now
 
   private moveGraphsKeyBinding: MoveGraphsKeyBinding;
@@ -186,9 +194,15 @@ export class HostEventManager {
     });
   }
 
+  /**
+   * 启用删除
+   */
   enableDelete() {
     this.isEnableDelete = true;
   }
+  /**
+   * 禁用删除
+   */
   disableDelete() {
     this.isEnableDelete = false;
   }

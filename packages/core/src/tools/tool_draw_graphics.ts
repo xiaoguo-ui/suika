@@ -145,33 +145,44 @@ export abstract class DrawGraphicsTool implements ITool {
     // 重置临时拖拽点
     this.lastDragPointWhenSpaceDown = null;
   }
-
+  /**
+   * 拖拽绘制图形
+   * @param e PointerEvent
+   * @description 拖拽绘制图形
+   */
   onDrag(e: PointerEvent) {
+    // 禁用删除
     this.editor.hostEventManager.disableDelete();
+    // 禁用右键菜单
     this.editor.hostEventManager.disableContextmenu();
+    // 如果正在拖拽画布，则不进行绘制
     if (this.editor.hostEventManager.isDraggingCanvasBySpace) {
       return;
     }
+    // 获取鼠标在视口中的位置
     this.lastDragPointInViewport = this.editor.getCursorXY(e);
 
+    // 获取鼠标在场景中的位置
     this.lastDragPoint = this.lastMousePoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
     );
-
+    // 如果未开始拖拽且启用对象捕捉，则缓存参考线
     if (!this.isDragging && this.editor.setting.get('snapToObjects')) {
       this.editor.refLine.cacheGraphicsRefLines();
     }
+    // 获取参考线偏移量
     const offset = this.editor.refLine.getGraphicsSnapOffset([
       this.lastDragPoint,
     ]);
+    // 更新拖拽点
     this.lastDragPoint = {
       x: this.lastDragPoint.x + offset.x,
       y: this.lastDragPoint.y + offset.y,
     };
-
+    // 设置拖拽状态
     this.isDragging = true;
-
+    // 更新绘制矩形
     this.updateRect();
   }
   /**

@@ -224,24 +224,14 @@ export class ToolManager {
   private bindEvent() {
     /**
      * 标记鼠标当前是否处于按下状态
-     * 在鼠标按下时设置为 true
-     * 在鼠标释放时设置为 false
-     * 用于判断是否应该处理鼠标移动事件，防止在鼠标未按下时触发拖拽逻辑
      */
     let isPressing = false;
     /**
      * 记录鼠标按下时的起始位置
-     * 保存鼠标按下时刻的 clientX 和 clientY 坐标
-     * 用于计算鼠标移动距离 (dx, dy)
-     * 配合 dragBlockStep 判断是否达到拖拽阈值
      */
     let startPos: IPoint = { x: 0, y: 0 };
     /**
      * 标记是否通过左键开始的操作
-     * 在左键按下时设置为 true
-     * 在非左键或其他无效情况下保持 false
-     * 确保只有左键操作才能触发工具的拖拽行为
-     * 在鼠标释放时作为前置条件检查
      */
     let startWithLeftMouse = false;
 

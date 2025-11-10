@@ -91,8 +91,11 @@ export const sceneCoordsToViewportUtil = (
  * 这个方法会得到值最接近的 x.5 值。
  */
 export const nearestPixelVal = (n: number) => {
+  // 获取最接近的整数
   const left = Math.floor(n);
+  // 获取最接近的整数，向上取整
   const right = Math.ceil(n);
+  // 返回最接近的 x.5 值
   return (n - left < right - n ? left : right) + 0.5;
 };
 
