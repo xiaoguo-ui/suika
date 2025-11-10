@@ -1,21 +1,37 @@
 import { type SuikaGraphics } from '../graphics';
 
+/**
+ * 用于为新建图形对象生成唯一的名称，避免与父对象下现有子对象的名称冲突。
+ * @param parent 父对象
+ * @param objectType 对象类型
+ * @returns 不冲突的对象名称
+ */
 export const getNoConflictObjectName = (
   parent: SuikaGraphics,
   objectType: string,
 ) => {
+  // 获取父对象的子对象
   const children = parent.getChildren();
+  // 初始化最大编号
   let maxNum = 0;
+  // 创建正则表达式，用于匹配对象名称中的编号
   const regexp = new RegExp(`^${objectType}\\s+(\\d+)`);
+  // 遍历父对象的子对象
   for (const child of children) {
+    // 匹配对象名称中的编号
     const match = child.attrs.objectName.match(regexp);
+    // 如果匹配到编号
     if (match) {
+      // 将匹配到的编号转换为数字
       const num = parseInt(match[1]);
+      // 如果编号大于最大编号，则更新最大编号
       if (num > maxNum) {
+        // 更新最大编号
         maxNum = num;
       }
     }
   }
+  // 返回不冲突的对象名称，编号为最大编号加1
   return `${objectType} ${maxNum + 1}`;
 };
 /**
