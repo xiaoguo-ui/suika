@@ -136,7 +136,9 @@ export class SuikaEditor {
     // 选中元素管理器
     this.selectedElements = new SelectedElements(this);
     this.selectedBox = new SelectedBox(this);
+    // 标尺管理器
     this.ruler = new Ruler(this);
+    // 参考线管理器
     this.refLine = new RefLine(this);
 
     this.controlHandleManager = new ControlHandleManager(this);
@@ -241,13 +243,18 @@ export class SuikaEditor {
     return this.cursorManager.getCursor();
   }
   /**
-   * viewport coords to scene coords
-   *
-   * reference: https://mp.weixin.qq.com/s/uvVXZKIMn1bjVZvUSyYZXA
+   * 将视口坐标转换为场景坐标
+   * @param x 视口坐标x
+   * @param y 视口坐标y
+   * @param round 是否四舍五入
+   * @returns 场景坐标 { x, y }
    */
   toScenePt(x: number, y: number, round = false) {
+    // 获取缩放比例
     const zoom = this.zoomManager.getZoom();
+    // 获取视口
     const { x: scrollX, y: scrollY } = this.viewportManager.getViewport();
+    // 视口坐标 → 场景坐标
     return viewportCoordsToSceneUtil(x, y, zoom, scrollX, scrollY, round);
   }
   toViewportPt(x: number, y: number) {
@@ -269,19 +276,20 @@ export class SuikaEditor {
    * @returns 视口坐标
    */
   getCursorXY(event: { clientX: number; clientY: number }) {
+    // 减去画布容器的偏移量（offsetX, offsetY）
     return {
       x: event.clientX - this.setting.get('offsetX'),
       y: event.clientY - this.setting.get('offsetY'),
     };
   }
   /**
-   * 获取场景坐标
+   * 将浏览器事件坐标（clientX, clientY）转换为场景坐标（Scene Coordinates）
    * @param event 事件对象
    * @param round 是否四舍五入
    * @returns 场景坐标
    */
   getSceneCursorXY(event: { clientX: number; clientY: number }, round = false) {
-    // 获取视口坐标
+    // 浏览器坐标 → 视口坐标
     const { x, y } = this.getCursorXY(event);
     // 转换为场景坐标
     return this.toScenePt(x, y, round);

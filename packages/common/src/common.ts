@@ -39,36 +39,51 @@ export const objectNameGenerator = {
 };
 
 /**
- * 找出离 value 最近的 segment 的倍数值
+ * 用于找到离给定值最近的 segment 的倍数值，常用于网格吸附。
+ * @param value 需要对齐的数值
+ * @param segment 网格间距（倍数单位）
+ * @returns 最近的倍数值
  */
 export const getClosestTimesVal = (value: number, segment: number) => {
+  // 计算所在网格段
   const n = Math.floor(value / segment);
+  // 左侧网格点 2 * 3 = 6
   const left = segment * n;
+  // 右侧网格点  2 * 4 = 8
   const right = segment * (n + 1);
+  // 比较到 left 和 right 的距离，返回更近的点
   return value - left <= right - value ? left : right;
 };
 
+/**
+ * 将视口坐标转换为场景坐标
+ * @param x 视口坐标x
+ * @param y 视口坐标y
+ * @param zoom 缩放比例
+ * @param scrollX 视口x偏移量
+ * @param scrollY 视口y偏移量
+ * @param round 是否四舍五入
+ * @returns 场景坐标 { x, y }
+ */
 export const viewportCoordsToSceneUtil = (
   x: number,
   y: number,
   zoom: number,
   scrollX: number,
   scrollY: number,
-  /**
-   * 是否四舍五入取整
-   */
   round = false,
 ) => {
+  // 视口坐标x → 场景坐标x
   let newX = scrollX + x / zoom;
+  // 视口坐标y → 场景坐标y
   let newY = scrollY + y / zoom;
+  // 是否四舍五入
   if (round) {
     newX = Math.round(newX);
     newY = Math.round(newY);
   }
-  return {
-    x: newX,
-    y: newY,
-  };
+  // 返回场景坐标 { x, y }
+  return { x: newX, y: newY };
 };
 
 export const sceneCoordsToViewportUtil = (

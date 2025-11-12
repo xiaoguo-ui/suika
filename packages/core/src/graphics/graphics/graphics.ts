@@ -867,13 +867,21 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
       parent.insertChild(this, position);
     }
   }
-
+  /**
+   * 用于将图形插入到容器图形中，维护父子关系和排序索引。
+   * @param graphics 要插入的图形
+   * @param sortIdx 排序索引
+   * @returns
+   */
   insertChild(graphics: SuikaGraphics, sortIdx?: string) {
+    // 只有容器图形（如 Canvas、Frame）才能插入子图形
     if (!this.isContainer) {
       console.warn(`graphics "${this.type}" is not container`);
       return;
     }
+    // 如果子图形已存在，跳过插入
     if (this.children.some((item) => item.attrs.id === graphics.attrs.id)) {
+      // 如果提供了 sortIdx，仍进行排序（可能改变顺序）
       if (sortIdx) {
         this.sortChildren();
       }

@@ -35,15 +35,31 @@ export abstract class DrawGraphicsTool implements ITool {
    */
   protected drawingGraphics: SuikaGraphics | null = null;
 
+  /**
+   * 起始点
+   * @description 起始点，用于计算矩形的起点
+   */
   private startPoint: IPoint = { x: -1, y: -1 };
+  /**
+   * 拖拽点在场景中的坐标
+   */
   private lastDragPoint!: IPoint;
+  /**
+   * 拖拽点在视口中的坐标
+   */
   private lastDragPointInViewport!: IPoint;
+  /**
+   * 最后鼠标点
+   */
   /** lastPoint with snap when dragging */
   private lastMousePoint!: IPoint;
   /**
-   * use to calculate the offset, to change the graphics's start point
+   * 用于处理在绘制过程中按下空格键拖拽画布的场景，确保图形起点随画布移动而正确更新。
    */
   private startPointWhenSpaceDown: IPoint | null = null;
+  /**
+   * 用于处理在绘制过程中按下空格键拖拽画布的场景，确保图形起点随画布移动而正确更新。
+   */
   private lastDragPointWhenSpaceDown: IPoint | null = null;
   /**
    * 是否正在拖拽
@@ -53,43 +69,71 @@ export abstract class DrawGraphicsTool implements ITool {
 
   constructor(protected editor: SuikaEditor) {}
 
+  /**
+   * 激活工具
+   * @description 激活工具
+   */
   onActive() {
+    // 获取编辑器实例
     const editor = this.editor;
+    // 获取修饰键管理器
     const hotkeysManager = editor.hostEventManager;
+    /**
+     * 更新矩形
+     * @description 更新矩形
+     */
     const updateRect = () => {
+      // 如果正在拖拽，则更新矩形
       if (this.isDragging) {
         this.updateRect();
       }
     };
+    // 监听 shift 键切换事件
     hotkeysManager.on('shiftToggle', updateRect);
 
+    /**
+     * 更新参考线
+     * @description 更新参考线
+     */
     const updateRefLinesWhenViewportTranslate = () => {
+      // 通过 hostEventManager 判断是否使用空格键拖拽画布
       if (editor.hostEventManager.isDraggingCanvasBySpace) {
         return;
       }
+      // 如果正在拖拽且启用对象吸附，则缓存参考线
       if (this.isDragging && this.editor.setting.get('snapToObjects')) {
         this.editor.refLine.cacheGraphicsRefLines({
           excludeItems: this.editor.selectedElements.getItems(),
         });
       }
     };
+    /**
+     * 更新正在绘制的矩形
+     * @description 更新正在绘制的矩形
+     */
     const updateRectWhenViewportTranslate = () => {
+      // 如果正在拖拽画布，则返回
       if (editor.hostEventManager.isDraggingCanvasBySpace) {
         return;
       }
+      // 如果正在拖拽，则更新矩形
       if (this.isDragging) {
+        // 将拖拽点从视口坐标转换为场景坐标
         this.lastDragPoint = editor.toScenePt(
           this.lastDragPointInViewport.x,
           this.lastDragPointInViewport.y,
           this.editor.setting.get('snapToGrid'),
         );
+        // 更新矩形
         this.updateRect();
       }
     };
+    // 当视口位置（x或y坐标）发生变化时，更新参考线
     editor.viewportManager.on(
       'xOrYChange',
       updateRefLinesWhenViewportTranslate,
     );
+    // 当视口位置（x或y坐标）发生变化时，更新正在绘制的矩形。
     editor.viewportManager.on('xOrYChange', updateRectWhenViewportTranslate);
 
     this.unbindEvent = () => {
@@ -131,7 +175,7 @@ export abstract class DrawGraphicsTool implements ITool {
    * @description 开始绘制图形
    */
   onStart(e: PointerEvent) {
-    // 获取鼠标点击的起点
+    // 获取鼠标点击的起点【网格吸附点】
     this.startPoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
@@ -195,12 +239,20 @@ export abstract class DrawGraphicsTool implements ITool {
     noMove?: boolean,
   ): SuikaGraphics | null;
 
+  /**
+   * 按下 Shift 键时将矩形调整为正方形，边长取宽度和高度的绝对值的最大值。
+   * @param rect 当前处理的矩形
+   * @returns 调整后的矩形
+   */
   protected adjustSizeWhenShiftPressing(rect: IRect) {
-    // pressing Shift to draw a square
+    // 获取当前尺寸
     const { width, height } = rect;
+    // 获取最大边长
     const size = Math.max(Math.abs(width), Math.abs(height));
+    // 保持方向并应用新尺寸
     rect.height = (Math.sign(height) || 1) * size;
     rect.width = (Math.sign(width) || 1) * size;
+    // 返回调整后的矩形
     return rect;
   }
 
@@ -229,114 +281,157 @@ export abstract class DrawGraphicsTool implements ITool {
     });
   }
 
-  /** update drawing rect object */
+  /**
+   * 更新绘制矩形对象
+   * @description 根据当前鼠标位置和修饰键状态，更新或创建图形对象
+   */
   private updateRect() {
+    // 如果不在拖拽状态，则返回
     if (!this.isDragging) return;
 
+    // 获取拖拽点的坐标
     const { x, y } = this.lastDragPoint;
+    // 获取场景图
     const sceneGraph = this.editor.sceneGraph;
 
+    //  处理在绘制过程中按下空格键拖拽画布的场景，确保图形起点随画布移动而正确更新。
     if (this.startPointWhenSpaceDown && this.lastDragPointWhenSpaceDown) {
+      // 获取空格键按下时的起始点坐标
       const { x: sx, y: sy } = this.startPointWhenSpaceDown;
+      // 获取空格键按下时的拖拽点坐标
       const { x: lx, y: ly } = this.lastDragPointWhenSpaceDown;
-      const dx = x - lx;
-      const dy = y - ly;
+      const dx = x - lx; // 计算x方向偏移量
+      const dy = y - ly; // 计算y方向偏移量
       this.startPoint = {
-        x: sx + dx,
-        y: sy + dy,
+        x: sx + dx, // 更新起始点x坐标
+        y: sy + dy, // 更新起始点y坐标
       };
     }
 
+    // 获取起始点坐标
     const { x: startX, y: startY } = this.startPoint;
 
+    // 计算矩形的宽度和高度（可能为负值，表示反向绘制）
     let width = x - startX;
     let height = y - startY;
 
+    // 处理宽度或高度为0的特殊情况
     if (width === 0 || height === 0) {
       const size = this.solveWidthOrHeightIsZero(
         { width, height },
+        // lastMousePoint 仅网格吸附，未应用对象吸附
         {
           x: this.lastMousePoint.x - this.startPoint.x,
-
           y: this.lastMousePoint.y - this.startPoint.y,
         },
       );
+      // 使用处理后的尺寸
       width = size.width;
       height = size.height;
     }
 
+    // 创建矩形对象（坐标和尺寸，宽度和高度可能为负）
     let rect = {
-      x: startX,
-      y: startY,
-      width, // width may be negative
-      height, // height may be negative
+      x: startX, // 矩形左上角x坐标
+      y: startY, // 矩形左上角y坐标
+      width, // 矩形宽度（可能为负）
+      height, // 矩形高度（可能为负）
     };
 
-    // whether to set the starting point as the center of the graphics
+    // 是否以起始点为中心绘制图形（Alt键按下）
     const isStartPtAsCenter = this.editor.hostEventManager.isAltPressing;
-    // whether to keep the graphics square
+    // 是否保持图形为正方形（Shift键按下）
     const keepSquare = this.editor.hostEventManager.isShiftPressing;
 
-    let cx = 0;
-    let cy = 0;
+    let cx = 0; // 中心点x坐标
+    let cy = 0; // 中心点y坐标
+
+    // 处理以中心点绘制的逻辑
     if (isStartPtAsCenter) {
+      // 将矩形扩展为两倍大小，以起始点为中心
       rect = {
-        x: rect.x - width,
-        y: rect.y - height,
-        width: rect.width * 2,
-        height: rect.height * 2,
+        x: rect.x - width, // 向左扩展
+        y: rect.y - height, // 向上扩展
+        width: rect.width * 2, // 宽度加倍
+        height: rect.height * 2, // 高度加倍
       };
 
+      // 计算中心点坐标
       cx = rect.x + rect.width / 2;
       cy = rect.y + rect.height / 2;
     }
 
+    // 处理保持正方形的逻辑
     if (keepSquare) {
       rect = this.adjustSizeWhenShiftPressing(rect);
     }
 
+    // 如果是以中心点绘制，需要重新调整矩形位置
     if (isStartPtAsCenter) {
-      rect.x = cx - rect.width / 2;
-      rect.y = cy - rect.height / 2;
+      rect.x = cx - rect.width / 2; // 以中心点为准重新定位x坐标
+      rect.y = cy - rect.height / 2; // 以中心点为准重新定位y坐标
     }
 
+    // 如果已经创建了图形对象，则更新其属性
     if (this.drawingGraphics) {
       this.updateGraphics(rect);
     } else {
+      // 创建新的图形对象
       const currentCanvas = this.editor.doc.getCurrCanvas();
+      // 查找点击位置所在的画框（如果有）
       const frame = getDeepFrameAtPoint(
         this.startPoint,
         currentCanvas.getChildren(),
       );
-      const parent = frame || currentCanvas;
+      const parent = frame || currentCanvas; // 父级元素为画框或画布
+      // 创建图形对象
       const graphics = this.createGraphics(rect, parent);
       this.drawingGraphics = graphics;
-
       if (!graphics) {
         return;
       }
 
+      // 将图形添加到场景图中
       sceneGraph.addItems([graphics]);
+      // 将图形插入到父级元素中
       parent.insertChild(graphics);
+      // 如果在画框内绘制，需要设置世界变换矩阵
       if (frame) {
         const tf = [...graphics.attrs.transform] as IMatrixArr;
         graphics.setWorldTransform(tf);
       }
+      // 设置当前选中的元素
       this.editor.selectedElements.setItems([graphics]);
     }
+    // 触发渲染
     this.editor.render();
   }
-
+  /**
+   *
+   *
+   * 当起始点和拖拽点在同一水平或垂直线上时，宽度或高度为 0，导致图形不可见。
+   * @description 处理宽度或高度为0的特殊情况
+   * @param size 尺寸
+   * @param delta 偏移量
+   * @returns 处理后的尺寸
+   */
   protected solveWidthOrHeightIsZero(size: ISize, delta: IPoint): ISize {
     const newSize = { width: size.width, height: size.height };
+    // 处理宽度为0的情况
     if (size.width === 0) {
+      // 返回方向符号（-1、0、1）
       const sign = Math.sign(delta.x) || 1;
+      // 设置为网格间距
       newSize.width = sign * this.editor.setting.get('gridSnapX');
     }
+    // 处理高度为0的情况
     if (size.height === 0) {
+      // 返回方向符号（-1、0、1）
       const sign = Math.sign(delta.y) || 1;
+      // 设置为网格间距
       newSize.height = sign * this.editor.setting.get('gridSnapY');
     }
+    // 返回处理后的尺寸
     return newSize;
   }
 

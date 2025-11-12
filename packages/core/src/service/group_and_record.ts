@@ -11,6 +11,13 @@ import { type SuikaEditor } from '../editor';
 import { GraphicsObjectSuffix, SuikaFrame, SuikaGraphics } from '../graphics';
 import { Transaction } from '../transaction';
 import { getNoConflictObjectName, getParentIdSet } from '../utils';
+
+/**
+ * 将一组图形组合成一个组，并记录操作
+ * @param graphicsArr 图形数组
+ * @param editor 编辑器
+ * @description 将一组图形组合成一个组，并记录操作
+ */
 export const groupAndRecord = (
   graphicsArr: SuikaGraphics[],
   editor: SuikaEditor,
