@@ -257,17 +257,25 @@ export abstract class DrawGraphicsTool implements ITool {
   }
 
   /**
-   * update graphics, and give the original rect (width may be negative)
+   * 更新绘制图形对象
+   * @param rect 矩形尺寸
    */
   protected updateGraphics(rect: IRect) {
+    // 将可能为负的 width/height 转换为标准形式（左上角坐标 + 正宽高）
     rect = normalizeRect(rect);
+    // 获取绘制图形对象
     const drawingShape = this.drawingGraphics!;
-
+    // 获取绘制图形对象的父级图形
     const parent = drawingShape.getParent();
+    // 获取矩形左上角x坐标
     let x = rect.x;
+    // 获取矩形左上角y坐标
     let y = rect.y;
+    // 如果父级图形是画框，则获取父级图形的变换矩阵
     if (parent && isFrameGraphics(parent)) {
+      // 获取父级图形的变换矩阵
       const tf = parent.getWorldTransform();
+      // 将矩形从世界坐标系转换为本地坐标系
       const point = applyInverseMatrix(tf, rect);
       x = point.x;
       y = point.y;
@@ -435,28 +443,38 @@ export abstract class DrawGraphicsTool implements ITool {
     return newSize;
   }
 
+  /**
+   * 功能：点击创建默认图形，或完成拖拽绘制并记录到命令历史。
+   * @param e
+   * @returns
+   */
   onEnd(e: PointerEvent) {
+    // 如果正在用空格键拖拽画布，直接返回，不处理绘制结束
     if (this.editor.hostEventManager.isDraggingCanvasBySpace) {
       return;
     }
-
+    // 获取鼠标释放时的场景坐标（应用网格吸附）
     const endPoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
     );
-
+    // （仅点击未拖拽）
     if (this.drawingGraphics === null) {
+      // 获取默认尺寸
       const { x: cx, y: cy } = endPoint;
       const width = this.editor.setting.get('drawGraphDefaultWidth');
       const height = this.editor.setting.get('drawGraphDefaultHeight');
 
+      // 确定父容器
       const currentCanvas = this.editor.doc.getCurrCanvas();
       const frame = getDeepFrameAtPoint(
         this.startPoint,
         currentCanvas.getChildren(),
       );
+      // 查找点击位置所在的 Frame，否则使用画布
       const parent = frame || currentCanvas;
 
+      // 以点击位置为中心创建默认尺寸图形
       this.drawingGraphics = this.createGraphics(
         {
           x: cx - width / 2,
@@ -467,39 +485,54 @@ export abstract class DrawGraphicsTool implements ITool {
         parent,
         true,
       );
-
+      // 添加
       if (this.drawingGraphics) {
         const graphics = this.drawingGraphics;
+        // 添加到场景图
         this.editor.sceneGraph.addItems([graphics]);
+        // 插入到父容器
         parent.insertChild(graphics);
+        // 如果在 Frame 内，使用 setWorldTransform 将世界坐标转换为本地坐标
         if (frame) {
           const tf = [...graphics.attrs.transform] as IMatrixArr;
           graphics.setWorldTransform(tf);
         }
+        // 选中图形并渲染
         this.editor.selectedElements.setItems([graphics]);
         this.editor.render();
       }
     }
-
+    // 记录命令历史，无论点击创建还是拖拽创建，都将操作记录到命令历史，支持撤销/重做
     if (this.drawingGraphics) {
       this.editor.commandManager.pushCommand(
         new AddGraphCmd(this.commandDesc, this.editor, [this.drawingGraphics]),
       );
     }
   }
-
+  /**
+   * 在绘制操作结束后进行清理和状态恢复，在 onEnd 之后调用。
+   */
   afterEnd() {
+    // 重置拖拽状态
     this.isDragging = false;
+    // 在 onDrag 中会禁用删除（防止误删）
+    // 绘制结束后重新启用删除键（Backspace/Delete）
     this.editor.hostEventManager.enableDelete();
+    // 在 onDrag 中会禁用右键菜单（避免干扰）
+    // 绘制结束后重新启用
     this.editor.hostEventManager.enableContextmenu();
+    // 自动切换工具
+    // 如果创建了图形且未开启“使用后保持工具选中”，自动切换回选择工具
     if (
       this.drawingGraphics &&
       !this.editor.setting.get('keepToolSelectedAfterUse')
     ) {
       this.editor.toolManager.setActiveTool('select');
     }
+    // 清理空格键拖拽画布时的临时起点和拖拽点
     this.startPointWhenSpaceDown = null;
     this.lastDragPointWhenSpaceDown = null;
+    // 清除绘制过程中显示的吸附参考线
     this.editor.refLine.clear();
   }
 }

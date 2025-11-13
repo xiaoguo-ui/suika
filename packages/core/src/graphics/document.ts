@@ -172,8 +172,14 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     // { leading: false },
   );
 
+  /**
+   * 获取设备视口大小
+   * @returns { width: number, height: number } 视口宽度、高度
+   */
   getDeviceViewSize() {
+    // 获取画布元素
     const canvasEl = this.editor.canvasElement;
+    // 返回视口宽度、高度
     return {
       width: canvasEl.width,
       height: canvasEl.height,

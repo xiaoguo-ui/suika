@@ -831,11 +831,18 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return 'M0.5 0.5H11.5V11.5H0.5V0.5Z';
   }
 
+  /**
+   * 获取图形的世界变换矩阵
+   * @returns { IMatrixArr } 世界变换矩阵
+   */
   getWorldTransform(): IMatrixArr {
+    // 获取图形父级
     const parent = this.getParent();
+    // 如果父级存在，则返回父级世界变换矩阵与当前图形变换矩阵的乘积
     if (parent) {
       return multiplyMatrix(parent.getWorldTransform(), this.attrs.transform);
     }
+    // 如果父级不存在，则返回当前图形变换矩阵
     return [...this.attrs.transform];
   }
 
@@ -950,6 +957,10 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return this.attrs.parentIndex?.guid;
   }
 
+  /**
+   * 获取图形父级
+   * @returns { SuikaGraphics | undefined } 父级图形
+   */
   getParent() {
     const parentId = this.getParentId();
     if (!parentId) {
