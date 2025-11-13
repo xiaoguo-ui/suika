@@ -34,9 +34,9 @@ export interface IParentIndex {
 }
 
 export interface IAdvancedAttrs {
-  x?: number;
-  y?: number;
-  rotate?: number;
+  x?: number; // 图形 x 坐标
+  y?: number; // 图形 y 坐标
+  rotate?: number; // 图形旋转角度
 }
 
 export interface IGraphicsOpts {

@@ -29,8 +29,14 @@ export class DrawRectTool extends DrawGraphicsTool implements ITool {
     super(editor);
     this.commandDesc = 'Add Rect'; // 设置命令描述为 "添加矩形"
   }
-
+  /**
+   * 创建矩形图形
+   * @param rect 矩形尺寸
+   * @param parent 父级图形
+   * @returns
+   */
   protected override createGraphics(rect: IRect, parent: SuikaGraphics) {
+    // 处理负宽度/高度：将矩形转换为标准形式（左上角 + 正宽高）
     rect = normalizeRect(rect);
     const graphics = new SuikaRect(
       {
@@ -47,6 +53,7 @@ export class DrawRectTool extends DrawGraphicsTool implements ITool {
         doc: this.editor.doc,
       },
     );
+    // 返回创建的图形
     return graphics;
   }
 }

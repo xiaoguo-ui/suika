@@ -28,11 +28,22 @@ export const objectNameGenerator = {
     this.maxIdxMap.set(type, idx);
     return `${type} ${idx}`;
   },
+  /**
+   * 用于更新对象名称生成器的最大索引，确保后续生成的名称不会与已存在的名称冲突。
+   * 当创建图形时提供了 objectName（如从文件加载或手动设置），需要同步更新生成器的最大索引，避免后续生成重复名称。
+   * @param objectName 对象名称
+   */
   setMaxIdx(objectName: string) {
+    // 正则匹配对象名称
+    // "Rect 1" → match = ["Rect 1", "Rect", "1"]
+    // "Ellipse 5" → match = ["Ellipse 5", "Ellipse", "5"]
+    // "My Custom Name" → match = null（不匹配）
     const match = objectName.match(/^(.*)\s+(\d+)$/);
     if (match) {
       const [, type, idxStr] = match;
+      // 转为数字
       const idx = Number(idxStr);
+      // 更新最大索引
       this.maxIdxMap.set(type, Math.max(this.maxIdxMap.get(type) ?? 0, idx));
     }
   },

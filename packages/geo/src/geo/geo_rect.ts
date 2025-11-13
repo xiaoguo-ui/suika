@@ -13,6 +13,12 @@ import { normalizeRadian } from './geo_angle';
 import { Matrix } from './geo_matrix_class';
 import { distance } from './geo_point';
 
+/**
+ * 计算一个正矩形
+ * @param point1 点1
+ * @param point2 点2
+ * @returns
+ */
 export const getRectByTwoPoint = (point1: IPoint, point2: IPoint): IRect => {
   return {
     x: Math.min(point1.x, point2.x),
@@ -103,12 +109,16 @@ export const isPointInRoundRect = (
 };
 
 /**
- * normalize rect,
- * width or height may be negative
+ * 将负宽度/高度转换为标准形式（左上角 + 正宽高）
+ * @param {IRect} { x, y, width, height } 矩形尺寸
+ * @returns
  */
 export const normalizeRect = ({ x, y, width, height }: IRect): IRect => {
+  // 计算右下角坐标
   const x2 = x + width;
+  // 计算右下角坐标
   const y2 = y + height;
+  // 获取矩形尺寸
   return getRectByTwoPoint({ x, y }, { x: x2, y: y2 });
 };
 

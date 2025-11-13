@@ -70,37 +70,49 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
   noRender = false;
   private _deleted = false;
   private _sortDirty = false;
-
+  /**
+   * 是否不收集更新
+   */
   private noCollectUpdate: boolean;
-
+  // 用于初始化图形对象，设置属性、变换矩阵和默认值。
   constructor(
     attrs: Omit<Optional<ATTRS, 'transform'>, 'id'>,
     opts: IGraphicsOpts,
   ) {
+    // 保存文档引用，用于管理图形树和属性
     this.doc = opts.doc;
+    // 如果未提供 transform，使用单位矩阵（无变换）
     const transform = attrs.transform ?? identityMatrix();
 
     const advancedAttrs = opts.advancedAttrs;
+    // 将 x、y 写入矩阵的平移分量
     if (advancedAttrs && !attrs.transform) {
+      // transform[4] = tx（x 平移）
       if (advancedAttrs.x !== undefined) {
         transform[4] = advancedAttrs.x;
       }
+      // transform[5] = ty（y 平移）
       if (advancedAttrs.y !== undefined) {
         transform[5] = advancedAttrs.y;
       }
     }
-
+    // 复制属性对象
     this.attrs = { ...attrs } as ATTRS;
+    // 生成唯一 ID
     this.attrs.id ??= genUuid();
+    // 设置变换矩阵
     this.attrs.transform = transform;
+    // strokeWidth，默认为 1
     this.attrs.strokeWidth ??= 1;
-
+    // 如果已提供 objectName，更新生成器的最大索引
     if (this.attrs.objectName) {
       objectNameGenerator.setMaxIdx(attrs.objectName);
+      // 根据类型生成新名称（如 "Rect 1", "Ellipse 2"）
     } else {
       this.attrs.objectName = objectNameGenerator.gen(this.attrs.type ?? '');
     }
 
+    // 是否不收集更新
     this.noCollectUpdate = Boolean(opts?.noCollectUpdate);
   }
 

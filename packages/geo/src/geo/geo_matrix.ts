@@ -1,5 +1,9 @@
 import { type IMatrixArr, type IPoint, type ITransformRect } from '../type';
 
+/**
+ * 返回单位矩阵
+ * @returns 单位矩阵
+ */
 export const identityMatrix = (): IMatrixArr => {
   return [1, 0, 0, 1, 0, 0];
 };
