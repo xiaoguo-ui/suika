@@ -47,35 +47,22 @@ const getKeyStr = (e: KeyboardEvent) => {
  * reference: https://mp.weixin.qq.com/s/Rwnxh3f9rqMpz_ZQx5CM2Q
  */
 export class KeyBindingManager {
-  /**
-   * 快捷键映射 id => keybinding
-   */
+  // 快捷键映射 id => keybinding
   private keyBindingMap = new Map<number, IKeyBinding>();
-  /**
-   * 是否绑定状态
-   */
+  // 是否绑定状态
   private isBound = false;
-  /**
-   * 快捷键ID
-   */
+  // 快捷键ID
   private id = 0;
 
   constructor(private editor: SuikaEditor) {}
-  /**
-   * 处理快捷键动作
-   * @param e 键盘事件
-   */
+  // 处理快捷键动作的处理器
   private handleAction = (e: KeyboardEvent) => {
-    // There are some default behaviors to prevent editor action
-    // e.g. Windows press ALT will focus on browser menu bar, which make key press no effect
     // 为了防止浏览器的默认行为干扰编辑器的快捷键功能。
-    // 在 Windows 系统中，按下 ALT 键会自动聚焦到浏览器的菜单栏
-    // 这会导致后续的键盘快捷键组合失效
+    // 在 Windows 系统中，按下 ALT 键会自动聚焦到浏览器的菜单栏，这会导致后续的键盘快捷键组合失效
     if (e.altKey) {
       e.preventDefault();
     }
-    // 当用户在输入框或文本框中输入文字时，应该使用标准的文本编辑快捷键
-    // 不应该被编辑器的全局快捷键干扰
+    // 当用户在输入框或文本框中输入文字时，应该使用标准的文本编辑快捷键，不应该被编辑器的全局快捷键干扰
     if (
       e.target instanceof HTMLInputElement ||
       e.target instanceof HTMLTextAreaElement
@@ -84,6 +71,7 @@ export class KeyBindingManager {
     }
     // 检查是否匹配快捷键
     let isMatch = false;
+    // 检查快捷键启动条件
     const ctx: IWhenCtx = {
       isToolDragging: this.editor.toolManager.isDragging(),
     };
@@ -91,15 +79,13 @@ export class KeyBindingManager {
     for (const keyBinding of this.keyBindingMap.values()) {
       // 检查快捷键启动条件
       if (!keyBinding.when || keyBinding.when(ctx)) {
-        // match windows os
-        // 检查是否匹配 Windows 操作系统
+        // 检查是否匹配 Windows 操作系统快捷键
         if (isWindows() && keyBinding.winKey) {
           // 检查是否匹配 Windows 操作系统快捷键
           if (this.isKeyMatch(keyBinding.winKey, e)) {
             isMatch = true;
           }
         }
-        // match other os
         // 检查是否匹配其他操作系统快捷键
         else if (this.isKeyMatch(keyBinding.key, e)) {
           isMatch = true;
@@ -107,7 +93,9 @@ export class KeyBindingManager {
       }
       // 如果匹配，则阻止默认行为，并调用快捷键动作
       if (isMatch) {
+        // 阻止默认行为
         e.preventDefault();
+        // 打印日志
         console.log(`[${getKeyStr(e)}] => ${keyBinding.actionName}`);
         // 调用快捷键触发绑定的回调函数
         keyBinding.action(e);
