@@ -2,21 +2,21 @@ import { isWindows } from '@suika/common';
 
 import { type SuikaEditor } from './editor';
 
+// 快捷键
 export interface IKey {
   ctrlKey?: boolean; // 控制键
   shiftKey?: boolean; // 移位键
   altKey?: boolean; // 替代键
   metaKey?: boolean; // 元键
-  /**
-   * KeyboardEvent['code'] or '*'(match any key)
-   */
   keyCode: string; // 键盘事件码
 }
 
+// 快捷键启动条件
 interface IWhenCtx {
   isToolDragging: boolean; // 工具是否正在拖拽
 }
 
+// 快捷键绑定
 interface IKeyBinding {
   key: IKey | IKey[]; // 快捷键(Mac系统)
   winKey?: IKey | IKey[]; // 快捷键(Windows系统)
@@ -28,6 +28,7 @@ interface IKeyBinding {
   action: (e: KeyboardEvent) => void; // 触发的方法
 }
 
+// 获取快捷键字符串
 const getKeyStr = (e: KeyboardEvent) => {
   const {
     ctrlKey = false,
@@ -41,11 +42,7 @@ const getKeyStr = (e: KeyboardEvent) => {
   }${altKey ? 'alt+' : ''}${e.code}`;
 };
 
-/**
- * key binding manager
- *
- * reference: https://mp.weixin.qq.com/s/Rwnxh3f9rqMpz_ZQx5CM2Q
- */
+// 快捷键管理器
 export class KeyBindingManager {
   // 快捷键映射 id => keybinding
   private keyBindingMap = new Map<number, IKeyBinding>();
@@ -107,12 +104,7 @@ export class KeyBindingManager {
       console.log(`[${getKeyStr(e)}] => no match`);
     }
   };
-  /**
-   * 检查是否匹配快捷键
-   * @param key 快捷键
-   * @param e 键盘事件
-   * @returns 是否匹配
-   */
+  // 检查是否匹配快捷键
   private isKeyMatch(key: IKey | IKey[], e: KeyboardEvent): boolean {
     // 如果快捷键是数组，则检查是否匹配数组中的快捷键
     if (Array.isArray(key)) {
@@ -137,11 +129,7 @@ export class KeyBindingManager {
       key.keyCode == e.code
     );
   }
-  /**
-   * 注册快捷键
-   * @param keybinding 快捷键绑定对象
-   * @returns 快捷键ID
-   */
+  // 注册快捷键
   register(keybinding: IKeyBinding) {
     const id = this.id;
     // 添加到映射中
@@ -151,12 +139,7 @@ export class KeyBindingManager {
     // 返回ID
     return id;
   }
-
-  /**
-   * 注册快捷键，并设置优先级
-   * @param keybinding 快捷键绑定对象
-   * @returns
-   */
+  // 注册快捷键，并设置优先级
   registerWithHighPrior(keybinding: IKeyBinding) {
     const id = this.id;
     // 创建新的快捷键映射
@@ -171,16 +154,11 @@ export class KeyBindingManager {
     this.id++;
     return id;
   }
-  /**
-   * 解除快捷键绑定
-   * @param id 快捷键ID
-   */
+  // 解除快捷键绑定
   unregister(id: number) {
     this.keyBindingMap.delete(id);
   }
-  /**
-   * 绑定事件
-   */
+  // 绑定事件
   bindEvent() {
     // 如果已经绑定，则返回
     if (this.isBound) return;
@@ -189,9 +167,7 @@ export class KeyBindingManager {
     // 监听鼠标按下事件
     document.addEventListener('keydown', this.handleAction);
   }
-  /**
-   * 销毁
-   */
+  // 销毁快捷键绑定
   destroy() {
     // 如果未绑定，则返回
     if (!this.isBound) return;
