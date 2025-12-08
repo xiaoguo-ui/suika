@@ -5,9 +5,12 @@ import { SuikaGraphics } from '../graphics';
 import { Transaction } from '../transaction';
 
 /**
- * move graphs by arrow key binding
+ * 方向键移动快捷键绑定
  */
 export class MoveGraphsKeyBinding {
+  /**
+   * 解除绑定函数
+   */
   private unbindHandler = noop;
   /**
    * 是否已经绑定
@@ -61,9 +64,10 @@ export class MoveGraphsKeyBinding {
     }, editor.setting.get('moveElementsDelay'));
 
     /**
-     *
+     * 刷新记录防抖函数
      */
     const flushRecordDebounce = () => {
+      // 刷新记录防抖函数
       recordDebounce.flush();
     };
     // 是否按下方向键的记录
@@ -169,7 +173,7 @@ export class MoveGraphsKeyBinding {
     // 注册快捷键
     this.editor.keybindingManager.register({
       key: [
-        ...keys.map((keyCode) => ({ keyCode })),
+        ...keys.map((keyCode) => ({ keyCode })), // 普通移动
         ...keys.map((keyCode) => ({ shiftKey: true, keyCode })),
       ],
       actionName: 'Move Elements',
@@ -179,16 +183,22 @@ export class MoveGraphsKeyBinding {
     window.addEventListener('keyup', handleKeyup);
     // 执行命令前触发
     editor.commandManager.on('beforeExecCmd', flushRecordDebounce);
-    // 解除绑定
-
+    // 解除绑定`
     this.unbindHandler = () => {
+      // 解除鼠标松开事件
       window.removeEventListener('keyup', handleKeyup);
+      // 解除执行命令前触发
       editor.commandManager.off('beforeExecCmd', flushRecordDebounce);
     };
   }
 
+  /**
+   * 销毁
+   */
   destroy() {
+    // 解除绑定
     this.unbindHandler();
+    // 设置已经绑定为 false
     this.hadBound = false;
   }
 }
