@@ -297,7 +297,10 @@ export class SuikaEditor {
   render() {
     this.sceneGraph.render();
   }
-
+  /**
+   * 获取画布的包围盒
+   * @returns 画布的包围盒
+   */
   getCanvasBbox() {
     const canvasGraphics = this.doc.getCurrCanvas();
     const children = canvasGraphics
