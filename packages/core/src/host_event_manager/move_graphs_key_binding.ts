@@ -4,29 +4,19 @@ import { type SuikaEditor } from '../editor';
 import { SuikaGraphics } from '../graphics';
 import { Transaction } from '../transaction';
 
-/**
- * 方向键移动快捷键绑定
- */
+// 方向键移动快捷键绑定
 export class MoveGraphsKeyBinding {
-  /**
-   * 解除绑定函数
-   */
+  // 解除绑定函数
   private unbindHandler = noop;
-  /**
-   * 是否已经绑定
-   */
+  // 是否已经绑定
   private hadBound = false;
-  /**
-   * 事务
-   */
+  // 事务
   private transaction: Transaction;
 
   constructor(private editor: SuikaEditor) {
     this.transaction = new Transaction(editor);
   }
-  /**
-   * 绑定方向键移动快捷键
-   */
+  // 绑定方向键移动快捷键
   bindKey() {
     // 如果已经绑定，则打印警告并返回
     if (this.hadBound) {
@@ -63,9 +53,7 @@ export class MoveGraphsKeyBinding {
       this.transaction = new Transaction(editor);
     }, editor.setting.get('moveElementsDelay'));
 
-    /**
-     * 刷新记录防抖函数
-     */
+    // 刷新记录防抖函数
     const flushRecordDebounce = () => {
       // 刷新记录防抖函数
       recordDebounce.flush();
@@ -84,11 +72,7 @@ export class MoveGraphsKeyBinding {
       pressed.ArrowUp ||
       pressed.ArrowDown;
 
-    /**
-     * 按键按下时触发
-     * @param event 键盘事件
-     * @returns
-     */
+    // 按键按下时触发
     const handleKeydown = (event: KeyboardEvent) => {
       // 获取选中的图形
       const movedGraphicsArr = editor.selectedElements.getItems();
@@ -97,7 +81,6 @@ export class MoveGraphsKeyBinding {
 
       // 如果按键在 pressed 中，则设置为 true
       if (event.key in pressed) {
-        // 设置为 true
         pressed[event.key as keyof typeof pressed] = true;
       }
       // 如果未按下方向键，则返回
@@ -105,9 +88,7 @@ export class MoveGraphsKeyBinding {
 
       // 如果需要记录原始属性，则记录原始属性
       if (needRecordOriginAttrs) {
-        // 记录原始属性
         for (const graphics of movedGraphicsArr) {
-          // 记录原始属性
           this.transaction.recordOld(graphics.attrs.id, {
             transform: cloneDeep(graphics.attrs.transform),
           });
@@ -115,7 +96,6 @@ export class MoveGraphsKeyBinding {
         // 设置需要记录原始属性为 false
         needRecordOriginAttrs = false;
       }
-
       // 获取微调值
       let nudge = editor.setting.get('smallNudge');
       // 如果按下 shift 键，则设置为大微调值
@@ -154,10 +134,7 @@ export class MoveGraphsKeyBinding {
       // 渲染编辑器
       editor.render();
     };
-    /**
-     * 鼠标松开时触发
-     * @param e 键盘事件
-     */
+    // 按键释放时触发
     const handleKeyup = (e: KeyboardEvent) => {
       // 获取按键
       const key = e.key;
@@ -166,7 +143,7 @@ export class MoveGraphsKeyBinding {
         // 设置为 false
         pressed[key as keyof typeof pressed] = false;
       }
-    }; // 按键释放时触发
+    };
 
     const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
 
@@ -192,9 +169,7 @@ export class MoveGraphsKeyBinding {
     };
   }
 
-  /**
-   * 销毁
-   */
+  // 销毁
   destroy() {
     // 解除绑定
     this.unbindHandler();

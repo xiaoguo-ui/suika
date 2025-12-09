@@ -56,6 +56,7 @@ export class HostEventManager {
     // 绑定命令快捷键
     this.commandKeyBinding = new CommandKeyBinding(editor);
   }
+  // 绑定快捷键
   bindHotkeys() {
     // 监听 shift、alt、space 键的按下和释放事件
     this.observeModifiersToggle();
@@ -68,9 +69,7 @@ export class HostEventManager {
     // 绑定命令快捷键
     this.commandKeyBinding.bindKey();
   }
-  /**
-   * 监听 shift、alt、space 键的按下和释放事件
-   */
+  // 监听 shift、alt、space 键的按下和释放事件
   private observeModifiersToggle() {
     // 监听 shift、alt、space 键的按下和释放事件的处理器
     const handler = (event: KeyboardEvent) => {
@@ -119,9 +118,7 @@ export class HostEventManager {
     });
   }
 
-  /**
-   * shiftToggle 会在切换时触发。按住 shift 不放，只会触发一次
-   */
+  // shiftToggle 会在切换时触发。按住 shift 不放，只会触发一次
   on<K extends keyof Events>(eventName: K, handler: Events[K]) {
     this.eventEmitter.on(eventName, handler);
   }
@@ -129,9 +126,7 @@ export class HostEventManager {
     this.eventEmitter.off(eventName, handler);
   }
 
-  /**
-   * 绑定滚轮事件，用于缩放或移动画布
-   */
+  // 绑定滚轮事件，用于缩放或移动画布
   private bindWheelEvent() {
     // 获取编辑器实例
     const editor = this.editor;
@@ -144,6 +139,9 @@ export class HostEventManager {
         // 获取鼠标位置
         const point = this.editor.getCursorXY(event);
         // 获取缩放方向
+        // event.deltaY 是鼠标滚轮事件的垂直滚动量
+        // 如果 event.deltaY 大于 0，则表示向上滚动，即缩小画布
+        // 如果 event.deltaY 小于 0，则表示向下滚动，即放大画布
         let isZoomOut = event.deltaY > 0;
         // 如果启用反向缩放，则反转缩放方向
         if (this.editor.setting.get('invertZoomDirection')) {
@@ -210,9 +208,7 @@ export class HostEventManager {
     });
   }
 
-  /**
-   * 绑定右键菜单事件
-   */
+  // 绑定右键菜单事件
   private bindContextMenu() {
     // 右键菜单事件处理函数
     const handler = (e: MouseEvent) => {
@@ -233,33 +229,23 @@ export class HostEventManager {
     });
   }
 
-  /**
-   * 启用删除
-   */
+  // 启用删除
   enableDelete() {
     this.isEnableDelete = true;
   }
-  /**
-   * 禁用删除
-   */
+  // 禁用删除
   disableDelete() {
     this.isEnableDelete = false;
   }
-  /**
-   * 启用右键菜单
-   */
+  // 启用右键菜单
   enableContextmenu() {
     this.isEnableContextMenu = true;
   }
-  /**
-   * 禁用右键菜单
-   */
+  // 禁用右键菜单
   disableContextmenu() {
     this.isEnableContextMenu = false;
   }
-  /**
-   * 销毁
-   */
+  // 销毁
   destroy() {
     // 解除绑定
     this.unbindHandlers.forEach((fn) => fn());

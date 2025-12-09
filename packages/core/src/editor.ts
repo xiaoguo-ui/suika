@@ -58,30 +58,21 @@ export class SuikaEditor {
   doc: SuikaDocument;
   sceneGraph: SceneGraph;
   controlHandleManager: ControlHandleManager;
-  /**
-   * 全局通用设置
-   */
+  // 全局通用设置
   setting: Setting;
 
   viewportManager: ViewportManager;
 
   canvasDragger: CanvasDragger;
-  /**
-   * 工具管理器
-   */
+  // 工具管理器
   toolManager: ToolManager;
   commandManager: CommandManager;
   zoomManager: ZoomManager;
   imgManager: ImgManager;
-  /**
-   * 光标管理器
-   */
+  // 光标管理器
   cursorManager: CursorManger;
   mouseEventManager: MouseEventManager;
-
-  /**
-   * 快捷键管理器
-   */
+  // 快捷键管理器
   keybindingManager: KeyBindingManager;
   hostEventManager: HostEventManager;
   clipboard: ClipboardManager;
@@ -113,7 +104,6 @@ export class SuikaEditor {
 
     // 快捷键管理器
     this.keybindingManager = new KeyBindingManager(this);
-    // 执行绑定事件
     this.keybindingManager.bindEvent();
 
     this.doc = new SuikaDocument({

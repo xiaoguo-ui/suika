@@ -118,9 +118,7 @@ export class ToolManager {
     // 绑定事件
     this._unbindEvent = this.bindEvent();
   }
-  /**
-   * 解除快捷键绑定
-   */
+  // 解除快捷键绑定
   private unbindHotkey() {
     // 解除快捷键绑定
     this.keyBindingToken.forEach((token) => {
@@ -145,10 +143,7 @@ export class ToolManager {
     return [...this.enableToolTypes];
   }
 
-  /**
-   * 注册工具构造函数
-   * @param toolCtor 工具构造函数
-   */
+  // 注册工具构造函数
   private registerToolCtor(toolCtor: IToolClassConstructor) {
     // 获取工具类型
     const type = toolCtor.type;
@@ -158,9 +153,7 @@ export class ToolManager {
     }
     // 保存工具构造函数
     this.toolCtorMap.set(type, toolCtor);
-
-    // select and pathSelect tool has same hotkey
-    // 选择和路径选择工具有相同的快捷键
+    // 获取工具快捷键
     const hotkey = toolCtor.hotkey;
     // 设置快捷键对象
     let keyCode = '';
@@ -474,9 +467,7 @@ export class ToolManager {
       );
     };
   }
-  /**
-   * 解除事件绑定
-   */
+  // 解除事件绑定
   unbindEvent() {
     // 解除事件绑定
     this._unbindEvent();
@@ -485,10 +476,8 @@ export class ToolManager {
     // 解除快捷键绑定
     this.unbindHotkey();
   }
-  /**
-   * 设置当前工具
-   * @param toolName 工具名称
-   */
+
+  // 设置当前工具
   async setActiveTool(toolName: string) {
     // 检查是否启用工具切换
     if (!this.enableSwitchTool || this.getActiveToolName() === toolName) {
@@ -534,29 +523,22 @@ export class ToolManager {
   off<K extends keyof Events>(eventName: K, handler: Events[K]) {
     this.eventEmitter.off(eventName, handler);
   }
-  /**
-   * 销毁工具
-   */
+  // 销毁工具
   destroy() {
     this.currentTool?.onInactive();
   }
-  /**
-   * 设置光标
-   */
+  // 设置光标
   setCursorWhenActive() {
-    // 检查当前工具是否存在
     if (this.currentTool) {
       this.editor.cursorManager.setCursor(this.currentTool.cursor);
     }
   }
-  /**
-   * 检查是否正在拖拽
-   * @returns 是否正在拖拽
-   */
+
+  // 检查是否正在拖拽
   isDragging() {
     return this._isDragging;
   }
-
+  // 获取当前视口点
   getCurrPoint() {
     return this.editor.toScenePt(
       this.currViewportPoint.x,

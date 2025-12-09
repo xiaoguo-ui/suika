@@ -56,9 +56,7 @@ export class KeyBindingManager {
   private handleAction = (e: KeyboardEvent) => {
     // 为了防止浏览器的默认行为干扰编辑器的快捷键功能。
     // 在 Windows 系统中，按下 ALT 键会自动聚焦到浏览器的菜单栏，这会导致后续的键盘快捷键组合失效
-    if (e.altKey) {
-      e.preventDefault();
-    }
+    if (e.altKey) e.preventDefault();
     // 当用户在输入框或文本框中输入文字时，应该使用标准的文本编辑快捷键，不应该被编辑器的全局快捷键干扰
     if (
       e.target instanceof HTMLInputElement ||
@@ -68,7 +66,7 @@ export class KeyBindingManager {
     }
     // 检查是否匹配快捷键
     let isMatch = false;
-    // 检查快捷键启动条件
+    // 检查快捷键启动条件,工具是否正在拖拽
     const ctx: IWhenCtx = {
       isToolDragging: this.editor.toolManager.isDragging(),
     };
