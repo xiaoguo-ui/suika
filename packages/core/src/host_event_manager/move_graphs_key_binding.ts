@@ -148,9 +148,7 @@ export class MoveGraphsKeyBinding {
 
   // 销毁
   destroy() {
-    // 解除绑定
     this.unbindHandler();
-    // 设置已经绑定为 false
     this.hadBound = false;
   }
 }
