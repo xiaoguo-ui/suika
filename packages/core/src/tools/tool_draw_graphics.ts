@@ -69,32 +69,22 @@ export abstract class DrawGraphicsTool implements ITool {
 
   constructor(protected editor: SuikaEditor) {}
 
-  /**
-   * 激活工具
-   * @description 激活工具
-   */
+  // 激活工具
   onActive() {
     // 获取编辑器实例
     const editor = this.editor;
     // 获取修饰键管理器
     const hotkeysManager = editor.hostEventManager;
-    /**
-     * 更新矩形
-     * @description 更新矩形
-     */
+    // 更新矩形
     const updateRect = () => {
       // 如果正在拖拽，则更新矩形
       if (this.isDragging) {
         this.updateRect();
       }
     };
-    // 监听 shift 键切换事件
+    // 监听 shift 键按下事件
     hotkeysManager.on('shiftToggle', updateRect);
-
-    /**
-     * 更新参考线
-     * @description 更新参考线
-     */
+    // 更新参考线
     const updateRefLinesWhenViewportTranslate = () => {
       // 通过 hostEventManager 判断是否使用空格键拖拽画布
       if (editor.hostEventManager.isDraggingCanvasBySpace) {
@@ -107,10 +97,7 @@ export abstract class DrawGraphicsTool implements ITool {
         });
       }
     };
-    /**
-     * 更新正在绘制的矩形
-     * @description 更新正在绘制的矩形
-     */
+    // 更新正在绘制的矩形
     const updateRectWhenViewportTranslate = () => {
       // 如果正在拖拽画布，则返回
       if (editor.hostEventManager.isDraggingCanvasBySpace) {
@@ -135,7 +122,7 @@ export abstract class DrawGraphicsTool implements ITool {
     );
     // 当视口位置（x或y坐标）发生变化时，更新正在绘制的矩形。
     editor.viewportManager.on('xOrYChange', updateRectWhenViewportTranslate);
-
+    // 绑定清理函数
     this.unbindEvent = () => {
       hotkeysManager.off('shiftToggle', updateRect);
       editor.viewportManager.off(

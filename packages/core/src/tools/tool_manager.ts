@@ -38,37 +38,23 @@ export class ToolManager {
    * 快捷键 => 工具类型
    */
   private hotkeySet = new Set<string>();
-  /**
-   * 当前工具
-   */
+
+  // 记录当前所激活的工具
   private currentTool: ITool | null = null;
-  /**
-   * 事件发射器
-   */
   private eventEmitter = new EventEmitter<Events>();
-  /**
-   * 标记是否启用工具切换
-   */
+
+  // 是否启用工具切换
   private enableSwitchTool = true;
-  /**
-   * 快捷键绑定token
-   */
+  // 快捷键绑定id列表
   private keyBindingToken: number[] = [];
-  /**
-   * 标记是否正在拖拽
-   */
+
+  // 标记是否正在拖拽
   private _isDragging = false;
-  /**
-   * 可使用的工具列表
-   */
+  // 保存可使用的工作列表
   private enableToolTypes: string[] = [];
-  /**
-   * 当前视口点
-   */
+  // 记录当前视口点
   private currViewportPoint: IPoint = { x: Infinity, y: Infinity };
-  /**
-   * 解除事件绑定
-   */
+  // 解除事件绑定
   _unbindEvent: () => void;
 
   constructor(private editor: SuikaEditor) {
@@ -120,29 +106,20 @@ export class ToolManager {
   }
   // 解除快捷键绑定
   private unbindHotkey() {
-    // 解除快捷键绑定
     this.keyBindingToken.forEach((token) => {
       this.editor.keybindingManager.unregister(token);
     });
-    // 清空快捷键绑定token
     this.keyBindingToken = [];
   }
-  /**
-   * 设置可使用快捷键工具列表
-   * @param toolTypes 工具类型列表
-   */
+  // 设置可使用快捷键工具列表
   public setEnableHotKeyTools(toolTypes: string[]) {
     this.enableToolTypes = toolTypes;
     this.eventEmitter.emit('changeEnableTools', [...toolTypes]);
   }
-  /**
-   * 获取可使用工具列表
-   * @returns
-   */
+  // 获取可使用工具列表
   public getEnableTools() {
     return [...this.enableToolTypes];
   }
-
   // 注册工具构造函数
   private registerToolCtor(toolCtor: IToolClassConstructor) {
     // 获取工具类型
@@ -200,38 +177,20 @@ export class ToolManager {
     // 添加快捷键绑定token
     this.keyBindingToken.push(token);
   }
-  /**
-   * 获取当前工具名称
-   * @returns 当前工具名称
-   */
+  // 获取当前工具名称
   getActiveToolName() {
     return this.currentTool?.type;
   }
-  /**
-   * bind event
-   * about dragBlockStep: https://mp.weixin.qq.com/s/05lbcYIJ8qwP8EHCXzgnqA
-   */
-  /**
-   * 绑定事件
-   */
+  // 绑定事件
   private bindEvent() {
-    /**
-     * 标记鼠标当前是否处于按下状态
-     */
+    // 标记鼠标当前是否处于按下状态
     let isPressing = false;
-    /**
-     * 记录鼠标按下时的起始位置
-     */
+    // 记录鼠标按下时的起始位置
     let startPos: IPoint = { x: 0, y: 0 };
-    /**
-     * 标记是否通过左键开始的操作
-     */
+    // 标记是否通过左键开始的操作
     let startWithLeftMouse = false;
 
-    /**
-     * 处理鼠标按下事件
-     * @param e 鼠标事件
-     */
+    // 处理鼠标按下事件
     const handleDown = (e: PointerEvent) => {
       setTimeout(() => {
         // 重置回默认状态
@@ -242,9 +201,9 @@ export class ToolManager {
         startWithLeftMouse = false;
         // 检查是否为左键按下
         if (
-          e.button !== 0 || // is not left mouse
-          this.editor.textEditor.isActive() || // is editing text mode 文本编辑模式
-          this.editor.hostEventManager.isSpacePressing // is dragging canvas mode 拖拽画布模式
+          e.button !== 0 || // 不是左键按下
+          this.editor.textEditor.isActive() || // 文本编辑模式
+          this.editor.hostEventManager.isSpacePressing // 拖拽画布模式
         ) {
           return;
         }
@@ -262,41 +221,32 @@ export class ToolManager {
         this.currentTool.onStart(e);
       });
     };
-    /**
-     * 处理鼠标移动事件
-     * @param e 鼠标事件
-     */
+    // 处理鼠标移动事件
     const handleMove = (e: PointerEvent) => {
       // 记录当前视口点
       this.currViewportPoint = this.editor.getCursorXY(e);
-      // 检查是否设置了当前工具
       if (!this.currentTool) {
         throw new Error('未设置当前使用工具');
       }
       // 是按下的状态
       if (isPressing) {
-        // 检查是否通过左键开始的操作
-        if (!startWithLeftMouse) {
-          return;
-        }
+        // 不是通过左键开始的操作
+        if (!startWithLeftMouse) return;
         // 计算鼠标移动距离
         const dx = e.clientX - startPos.x;
         const dy = e.clientY - startPos.y;
-        // TODO：获取拖拽阈值
-        // 优先使用工具自己的拖拽阈值
-        // 如果没有则使用编辑器的全局设置
+        // 获取拖拽阈值
         const dragBlockStep =
           this.currentTool.getDragBlockStep?.() ??
           this.editor.setting.get('dragBlockStep');
-        // 检查是否达到拖拽阈值
+        // 达到拖拽阈值
         if (
           !this._isDragging &&
           (Math.abs(dx) > dragBlockStep || Math.abs(dy) > dragBlockStep)
         ) {
-          // 设置拖拽状态
           this._isDragging = true;
         }
-        // 正在拖拽
+        // 拖拽中
         if (this._isDragging) {
           // 禁用工具切换
           this.enableSwitchTool = false;
@@ -312,22 +262,13 @@ export class ToolManager {
         this.currentTool.onMoveExcludeDrag(e, isOutsideCanvas);
       }
     };
-    /**
-     * 处理鼠标释放事件
-     * @param e 鼠标事件
-     */
+    // 处理鼠标释放事件
     const handleUp = (e: PointerEvent) => {
       // 启用工具切换
       this.enableSwitchTool = true;
-      // 检查是否通过左键开始的操作
-      if (!startWithLeftMouse) {
-        return;
-      }
-      // 检查是否设置了当前工具
-      if (!this.currentTool) {
-        throw new Error('未设置当前使用工具');
-      }
-      // 检查是否是按下的状态
+      if (!startWithLeftMouse) return;
+      if (!this.currentTool) throw new Error('未设置当前使用工具');
+
       if (isPressing) {
         // 启用画布拖拽
         this.editor.canvasDragger.enableDragBySpace();
@@ -341,126 +282,70 @@ export class ToolManager {
       // 重置拖拽状态
       this._isDragging = false;
     };
-    /**
-     * 处理命令改变事件
-     */
+    // 处理命令改变事件
     const handleCommandChange = () => {
       this.currentTool?.onCommandChange?.();
     };
-    /**
-     * 处理空格键切换事件
-     * @param isSpacePressing 是否按下空格键
-     */
+    // 处理空格键切换事件
     const handleSpaceToggle = (isSpacePressing: boolean) => {
       this.currentTool?.onSpaceToggle?.(isSpacePressing);
     };
-    /**
-     * 处理 shift 键切换事件
-     * @param isShiftPressing 是否按下 shift 键
-     */
+    // 处理 shift 键切换事件
     const handleShiftToggle = (isShiftPressing: boolean) => {
       this.currentTool?.onShiftToggle?.(isShiftPressing);
     };
-    /**
-     * 处理 alt 键切换事件
-     * @param isAltPressing 是否按下 alt 键
-     */
+    // 处理 alt 键切换事件
     const handleAltToggle = (isAltPressing: boolean) => {
       this.currentTool?.onAltToggle?.(isAltPressing);
     };
-    /**
-     * 处理视口 x 或 y 改变事件
-     * @param x 视口 x 坐标
-     * @param y 视口 y 坐标
-     */
+    // 处理视口 x 或 y 改变事件
     const handleViewportXOrYChange = (x: number, y: number) => {
       this.currentTool?.onViewportXOrYChange?.(x, y);
     };
-    /**
-     * 处理画布拖拽激活改变事件
-     * @param active 是否激活
-     */
+    // 处理画布拖拽激活改变事件
     const handleCanvasDragActiveChange = (active: boolean) => {
       this.currentTool?.onCanvasDragActiveChange?.(active);
     };
     const canvas = this.editor.canvasElement;
-    /**
-     * 绑定鼠标按下事件
-     */
+    // 绑定鼠标按下事件
     canvas.addEventListener('pointerdown', handleDown);
-    /**
-     * 绑定鼠标移动事件
-     */
+    // 绑定鼠标移动事件
     window.addEventListener('pointermove', handleMove);
-    /**
-     * 绑定鼠标释放事件
-     */
+    // 绑定鼠标释放事件
     window.addEventListener('pointerup', handleUp);
-    /**
-     * 绑定命令改变事件
-     */
+    // 绑定命令改变事件
     this.editor.commandManager.on('change', handleCommandChange);
-    /**
-     * 绑定空格键切换事件
-     */
+    // 绑定空格键切换事件
     this.editor.hostEventManager.on('spaceToggle', handleSpaceToggle);
-    /**
-     * 绑定 shift 键切换事件
-     */
+    // 绑定 shift 键切换事件
     this.editor.hostEventManager.on('shiftToggle', handleShiftToggle);
-    /**
-     * 绑定 alt 键切换事件
-     */
+    // 绑定 alt 键切换事件
     this.editor.hostEventManager.on('altToggle', handleAltToggle);
-    /**
-     * 绑定视口 x 或 y 改变事件
-     */
+    // 绑定视口 x 或 y 改变事件
     this.editor.viewportManager.on('xOrYChange', handleViewportXOrYChange);
-    /**
-     * 绑定画布拖拽激活改变事件
-     */
+    // 绑定画布拖拽激活改变事件
     this.editor.canvasDragger.on('activeChange', handleCanvasDragActiveChange);
 
     return () => {
-      /**
-       * 解除鼠标按下事件
-       */
+      // 解除鼠标按下事件
       canvas.removeEventListener('pointerdown', handleDown);
-      /**
-       * 解除鼠标移动事件
-       */
+      // 解除鼠标移动事件
       window.removeEventListener('pointermove', handleMove);
-      /**
-       * 解除鼠标释放事件
-       */
+      // 解除鼠标释放事件
       window.removeEventListener('pointerup', handleUp);
-      /**
-       * 解除命令改变事件
-       */
+      // 解除命令改变事件
       this.editor.commandManager.off('change', handleCommandChange);
-      /**
-       * 解除空格键切换事件
-       */
+      // 解除空格键切换事件
       this.editor.hostEventManager.off('spaceToggle', handleSpaceToggle);
-      /**
-       * 解除 shift 键切换事件
-       */
+      // 解除 shift 键切换事件
       this.editor.hostEventManager.off('shiftToggle', handleShiftToggle);
-      /**
-       * 解除 alt 键切换事件
-       */
+      // 解除 alt 键切换事件
       this.editor.hostEventManager.off('altToggle', handleAltToggle);
-      /**
-       * 解除 alt 键切换事件
-       */
+      // 解除 alt 键切换事件
       this.editor.hostEventManager.off('altToggle', handleAltToggle);
-      /**
-       * 解除视口 x 或 y 改变事件
-       */
+      // 解除视口 x 或 y 改变事件
       this.editor.viewportManager.off('xOrYChange', handleViewportXOrYChange);
-      /**
-       * 解除画布拖拽激活改变事件
-       */
+      // 解除画布拖拽激活改变事件
       this.editor.canvasDragger.off(
         'activeChange',
         handleCanvasDragActiveChange,
@@ -469,20 +354,14 @@ export class ToolManager {
   }
   // 解除事件绑定
   unbindEvent() {
-    // 解除事件绑定
     this._unbindEvent();
-    // 重置事件绑定
     this._unbindEvent = noop;
-    // 解除快捷键绑定
     this.unbindHotkey();
   }
-
-  // 设置当前工具
+  // 设置当前使用的工具
   async setActiveTool(toolName: string) {
     // 检查是否启用工具切换
-    if (!this.enableSwitchTool || this.getActiveToolName() === toolName) {
-      return;
-    }
+    if (!this.enableSwitchTool || this.getActiveToolName() === toolName) return;
     // 检查工具是否启用
     if (!this.enableToolTypes.includes(toolName)) {
       console.warn(`target tool "${toolName}" is not enable`);
@@ -490,7 +369,6 @@ export class ToolManager {
     }
     // 获取工具构造函数
     const currentToolCtor = this.toolCtorMap.get(toolName) || null;
-    // 检查工具构造函数是否存在
     if (!currentToolCtor) {
       throw new Error(`tool "${toolName}" is not registered`);
     }
@@ -498,23 +376,20 @@ export class ToolManager {
     const currentTool = new currentToolCtor(this.editor);
     // 检查工具是否激活
     if (currentTool.enableActive) {
-      // 启用工具
       const canActive = await currentTool.enableActive();
-      if (!canActive) {
-        return;
-      }
+      // 如果工具不能激活，则返回
+      if (!canActive) return;
     }
     // 设置前一个工具
     const prevTool = this.currentTool;
     // 设置当前工具
     this.currentTool = currentTool;
-    // 调用前一个工具的 onInactive 方法
+    // 失活前一个工具
     prevTool && prevTool.onInactive();
     // 设置光标
     this.setCursorWhenActive();
-    // 调用当前工具的 onActive 方法
+    // 激活当前工具
     currentTool.onActive();
-    // 发射工具切换事件
     this.eventEmitter.emit('switchTool', currentTool.type);
   }
   on<K extends keyof Events>(eventName: K, handler: Events[K]) {
