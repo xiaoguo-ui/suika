@@ -100,6 +100,7 @@ export class SuikaEditor {
       this.setting.set('offsetY', options.offsetY);
     }
 
+    // 鼠标事件管理器
     this.mouseEventManager = new MouseEventManager(this);
 
     // 快捷键管理器

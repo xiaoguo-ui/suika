@@ -36,21 +36,31 @@ interface Events {
 }
 
 export class MouseEventManager {
-  /**
-   * 表示鼠标中键是否按下
-   */
+  // 记录鼠标中键是否按下
   private isWheelBtnPressing = false;
+  // 事件发射器
   private eventEmitter = new EventEmitter<Events>();
+  // 记录鼠标位置
   private cursorPos: IPoint | null = null;
+  // 记录鼠标按下的场景坐标
+  private startPos: IPoint = { x: 0, y: 0 };
+  // 鼠标是否按下
+  private isPressing = false;
+  // 记录鼠标拖拽过程中的最大位移距离
+  private maxDragDistance = 0;
+  // 记录鼠标按下时间戳
+  private pointerDownTimeStamp = -Infinity;
+  // 记录鼠标按下的位置
+  private lastPointerDownPos: IPoint = { x: -99, y: -99 };
 
   constructor(private editor: SuikaEditor) {
     this.bindEvent();
   }
-
+  // 获取场景位置
   getCursorPos() {
     return cloneDeep(this.cursorPos);
   }
-
+  // 设置场景位置
   private setCursorPos(pos: IPoint | null) {
     const prevCursorPos = this.cursorPos;
     this.cursorPos = pos && { x: pos.x, y: pos.y };
@@ -59,36 +69,17 @@ export class MouseEventManager {
       this.eventEmitter.emit('cursorPosUpdate', cloneDeep(pos));
     }
   }
-  /**
-   * 记录鼠标按下的场景坐标
-   */
-  private startPos: IPoint = { x: 0, y: 0 };
-  /**
-   * 鼠标是否按下
-   */
-  private isPressing = false;
-  /**
-   * 鼠标用于跟踪拖拽过程中的最大位移距离，
-   */
-  private maxDragDistance = 0;
 
-  /**
-   * 鼠标 按下 的处理函数
-   * @param event 事件对象
-   * @returns
-   */
+  // 鼠标按下事件处理函数
   private onPointerdown = (event: PointerEvent) => {
     // 判断是否是画布元素
-    if (event.target !== this.editor.canvasElement) {
-      return;
-    }
-    // 处理鼠标中键按下的状态
+    if (event.target !== this.editor.canvasElement) return;
+    // 更新鼠标中键按下的状态
     this.updateIsWheelBtnPressing(event);
     // 更新鼠标按下的状态
     this.isPressing = true;
     // 场景坐标与视口坐标
     const { pos, vwPos } = this.getPosAndVwPos(event);
-    //
     this.startPos = { ...pos };
     // 检查双击是否触发
     const isComboClick = this.checkIfComboClick(event);
@@ -104,11 +95,7 @@ export class MouseEventManager {
       this.eventEmitter.emit('comboClick', e);
     }
   };
-
-  /**
-   * 处理鼠标移动事件
-   * @param event 鼠标事件
-   */
+  // 处理鼠标移动事件
   private onPointerMove = (event: PointerEvent) => {
     // 检查鼠标是否在画布内部
     const isInsideCanvas = event.target === this.editor.canvasElement;
@@ -119,12 +106,12 @@ export class MouseEventManager {
     }
     // 获取鼠标位置和视口位置
     const { pos, vwPos } = this.getPosAndVwPos(event);
-    // 鼠标按下一直按下状态
+    // 鼠标按下并且一直按下状态
     if (this.isPressing) {
       // 计算鼠标移动距离
       const dx = pos.x - this.startPos.x;
-      // 计算鼠标移动距离
       const dy = pos.y - this.startPos.y;
+
       // 在拖拽过程中持续更新
       const dragDistance = Math.max(Math.abs(dx), Math.abs(dy));
       this.maxDragDistance = Math.max(dragDistance, this.maxDragDistance);
@@ -137,7 +124,6 @@ export class MouseEventManager {
         maxDragDistance: this.maxDragDistance, // 鼠标移动的最大距离
       });
     } else {
-      // 发射鼠标移动事件
       this.eventEmitter.emit('move', {
         pos, // 场景坐标
         vwPos, // 视口坐标
@@ -147,12 +133,7 @@ export class MouseEventManager {
       });
     }
   };
-
-  /**
-   * 获取鼠标位置和视口位置
-   * @param event 鼠标事件
-   * @returns 鼠标位置和视口位置
-   */
+  // 获取鼠标位置和视口位置
   private getPosAndVwPos(event: PointerEvent) {
     // 获取到视口坐标
     const vwPos = this.editor.getCursorXY(event);
@@ -161,10 +142,7 @@ export class MouseEventManager {
       vwPos,
     };
   }
-  /**
-   * 鼠标释放事件，负责清理拖拽状态并通知操作结束。
-   * @param event
-   */
+  // 鼠标释放事件处理函数
   private onPointerUp = (event: PointerEvent) => {
     // 更新中键状态
     this.updateIsWheelBtnPressing(event);
@@ -177,15 +155,12 @@ export class MouseEventManager {
     // 发出结束事件
     if (isInsideCanvas || this.isPressing) {
       this.eventEmitter.emit('end', {
-        ...this.getPosAndVwPos(event), // 位置信息
-        nativeEvent: event, // 原生事件
+        ...this.getPosAndVwPos(event),
+        nativeEvent: event,
       });
     }
   };
-  /**
-   * 更新鼠标按下事件处理状态
-   * @param event
-   */
+  // 更新鼠标按下事件处理状态
   private updateIsWheelBtnPressing(event: PointerEvent) {
     // 鼠标中键
     if (event.button === MouseKey.Mid) {
@@ -199,7 +174,6 @@ export class MouseEventManager {
       }
       // 只有状态真正改变时才发射事件，避免重复通知
       if (prevWheelBtnPressing !== this.isWheelBtnPressing) {
-        // 发出鼠标滚轮事件
         this.eventEmitter.emit(
           'wheelBtnToggle',
           this.isWheelBtnPressing,
@@ -208,23 +182,10 @@ export class MouseEventManager {
       }
     }
   }
-  // 时间戳
-  private pointerDownTimeStamp = -Infinity;
-  /**
-   * 记录鼠标按下的位置
-   */
-  private lastPointerDownPos: IPoint = { x: -99, y: -99 };
-
-  /**
-   * 双击检测逻辑，用于识别用户的双击操作。
-   * @param nativeEvent
-   * @returns
-   */
+  // 双击检测逻辑，用于识别用户的双击操作。
   private checkIfComboClick = (nativeEvent: PointerEvent) => {
     // 不是鼠标左键
-    if (nativeEvent.button !== MouseKey.Left) {
-      return false;
-    }
+    if (nativeEvent.button !== MouseKey.Left) return false;
     // 获取当前的时间戳
     const now = new Date().getTime();
     // 获取鼠标位置
@@ -236,7 +197,6 @@ export class MouseEventManager {
     const interval = now - this.pointerDownTimeStamp;
     // 获取点击距离差
     const clickDistanceDiff = distance(newPos, this.lastPointerDownPos);
-    // 符合双击的条件
     if (
       interval < this.editor.setting.get('comboClickMaxGap') &&
       clickDistanceDiff < this.editor.setting.get('comboClickDistanceTol')
@@ -251,30 +211,21 @@ export class MouseEventManager {
     this.lastPointerDownPos = newPos;
     return false;
   };
-  /**
-   * 初始化鼠标绑定
-   */
+  // 绑定鼠标事件
   private bindEvent() {
-    // 监听鼠标按下事件
     window.addEventListener('pointerdown', this.onPointerdown);
-    // 监听鼠标移动事件
     window.addEventListener('pointermove', this.onPointerMove);
-    // 监听鼠标抬起事件
     window.addEventListener('pointerup', this.onPointerUp);
   }
-  /**
-   * 解绑鼠标事件
-   */
+  // 解绑鼠标事件
   private unbindEvent() {
     window.removeEventListener('pointerdown', this.onPointerdown);
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
   }
-
   destroy() {
     this.unbindEvent();
   }
-
   on<K extends keyof Events>(eventName: K, handler: Events[K]) {
     this.eventEmitter.on(eventName, handler);
   }
