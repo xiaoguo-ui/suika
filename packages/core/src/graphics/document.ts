@@ -45,24 +45,23 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     super({ ...attrs, type: GraphicsType.Document }, {} as IGraphicsOpts);
   }
 
+  // 设置编辑器
   setEditor(editor: SuikaEditor) {
     this.editor = editor;
   }
-
+  // 清空图形存储
   clear() {
     // TODO: update doc.updateInfo
     this.graphicsStoreManager.clear();
   }
-
+  // 获取画布
   getCanvas() {
     return this.graphicsStoreManager.getCanvas();
   }
-
   // 根据ID获取图形
   getGraphicsById(id: string) {
     return this.graphicsStoreManager.get(id);
   }
-
   // 根据ID集合获取图形数组
   getGraphicsArrByIds(ids: Set<string>) {
     const graphicsArr: SuikaGraphics[] = [];
@@ -77,11 +76,11 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     }
     return graphicsArr;
   }
-
+  // 获取所有图形
   getAllGraphicsArr() {
     return this.graphicsStoreManager.getAll();
   }
-
+  // 获取当前画布
   getCurrCanvas() {
     return this.graphicsStoreManager.getCanvas();
   }
