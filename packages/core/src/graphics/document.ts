@@ -23,27 +23,19 @@ interface Events {
 }
 
 export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
+  // 图形类型为文档
   override type = GraphicsType.Document;
   protected override isContainer = true;
-  /**
-   * 图形存储管理器
-   */
+  // 图形存储管理器
   graphicsStoreManager = new GraphicsStoreManager();
   private emitter = new EventEmitter<Events>();
 
   private changes = {
-    /**
-     * 记录新添加的图形对象
-     * 数据结构：Map（键为图形ID，值为图形属性）
-     */
+    // 记录新添加的图形对象
     added: new Map<string, GraphicsAttrs>(),
-    /**
-     * 记录被删除的图形ID
-     */
+    // 记录被删除的图形ID
     deleted: new Set<string>(),
-    /**
-     * 被更新的图形ID
-     */
+    // 被更新的图形ID
     updatedIds: new Set<string>(),
   };
 
@@ -66,12 +58,15 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     return this.graphicsStoreManager.getCanvas();
   }
 
+  // 根据ID获取图形
   getGraphicsById(id: string) {
     return this.graphicsStoreManager.get(id);
   }
 
+  // 根据ID集合获取图形数组
   getGraphicsArrByIds(ids: Set<string>) {
     const graphicsArr: SuikaGraphics[] = [];
+    // 遍历ID集合
     for (const id of ids) {
       const graphics = this.getGraphicsById(id);
       if (!graphics) {
@@ -90,10 +85,7 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
   getCurrCanvas() {
     return this.graphicsStoreManager.getCanvas();
   }
-  /**
-   * 添加图形
-   * @param graphics 图形
-   */
+  // 添加图形
   addGraphics(graphics: SuikaGraphics) {
     // 添加图形
     this.graphicsStoreManager.add(graphics);
@@ -102,29 +94,35 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     // 触发场景变化
     this.emitSceneChangeThrottle();
   }
-
+  // 收集删除的图形
   collectDeletedGraphics(graphics: SuikaGraphics) {
+    // 当前图形的ID
     const id = graphics.attrs.id;
+    // 当前图形可删除
     if (graphics.isDeleted()) {
+      // 记录被删除的图形ID
       this.changes.deleted.add(id);
+      // 删除新添加的图形对象
       this.changes.added.delete(id);
     } else {
+      // 不可删除
       this.changes.deleted.delete(id);
+      // 记录新添加的图形对象
       this.changes.added.set(id, graphics.getAttrs());
     }
+    // 触发场景变化
     this.emitSceneChangeThrottle();
   }
-
+  // 收集更新的图形ID
   collectUpdatedGraphics(id: string) {
+    // 保存更新的图形ID
     this.changes.updatedIds.add(id);
+    // 触发场景变化
     this.emitSceneChangeThrottle();
   }
-  /**
-   * 刷新更改
-   * @returns 更改
-   */
+  // 将文档中累积的图形变化汇总并返回一个标准化的变化对象
   flushChanges() {
-    // 记录被更新的图形对象
+    // 汇总被更新的图形对象
     const updates = new Map<string, Partial<GraphicsAttrs>>();
     // 遍历被更新的图形ID
     for (const id of this.changes.updatedIds) {
@@ -146,12 +144,9 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
     };
     // 清除更改
     this.clearChanges();
-    // 变化
     return changes;
   }
-  /**
-   * 重置更改
-   */
+  // 重置更改
   private clearChanges() {
     this.changes = {
       added: new Map(),
@@ -159,27 +154,14 @@ export class SuikaDocument extends SuikaGraphics<SuikaCanvasAttrs> {
       updatedIds: new Set(),
     };
   }
-  /**
-   * 触发场景变化
-   */
-  private emitSceneChangeThrottle = throttle(
-    () => {
-      const changes = this.flushChanges();
-      // 触发场景变化事件
-      this.emitter.emit('sceneChange', changes, 'unknown');
-    },
-    100,
-    // { leading: false },
-  );
-
-  /**
-   * 获取设备视口大小
-   * @returns { width: number, height: number } 视口宽度、高度
-   */
+  // 触发场景变化
+  private emitSceneChangeThrottle = throttle(() => {
+    const changes = this.flushChanges();
+    this.emitter.emit('sceneChange', changes, 'unknown');
+  }, 100);
+  // 获取设备视口大小
   getDeviceViewSize() {
-    // 获取画布元素
     const canvasEl = this.editor.canvasElement;
-    // 返回视口宽度、高度
     return {
       width: canvasEl.width,
       height: canvasEl.height,

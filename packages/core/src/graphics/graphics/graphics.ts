@@ -58,6 +58,9 @@ import {
   type IGraphicsOpts,
 } from './graphics_attrs';
 
+/* 
+  整个图形编辑器的核心抽象，为所有具体图形类型（如矩形、圆形、文本等）提供了统一的接口和基础实现，使得图形对象能够被统一管理和操作。
+*/
 export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
   type = GraphicsType.Graph;
   attrs: ATTRS;
