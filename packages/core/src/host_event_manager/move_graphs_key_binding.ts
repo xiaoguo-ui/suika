@@ -45,7 +45,6 @@ export class MoveGraphsKeyBinding {
           transform: cloneDeep(graphics.attrs.transform),
         });
       }
-
       // 启用撤销/重做
       this.editor.commandManager.enableRedoUndo();
       // 提交事务，记录移动图形的历史
@@ -55,7 +54,6 @@ export class MoveGraphsKeyBinding {
 
     // 刷新记录防抖函数
     const flushRecordDebounce = () => {
-      // 刷新记录防抖函数
       recordDebounce.flush();
     };
     // 是否按下方向键的记录
@@ -71,7 +69,6 @@ export class MoveGraphsKeyBinding {
       pressed.ArrowRight ||
       pressed.ArrowUp ||
       pressed.ArrowDown;
-
     // 按键按下时触发
     const handleKeydown = (event: KeyboardEvent) => {
       // 获取选中的图形
@@ -85,7 +82,6 @@ export class MoveGraphsKeyBinding {
       }
       // 如果未按下方向键，则返回
       if (!checkPressed()) return;
-
       // 如果需要记录原始属性，则记录原始属性
       if (needRecordOriginAttrs) {
         for (const graphics of movedGraphicsArr) {
@@ -100,28 +96,11 @@ export class MoveGraphsKeyBinding {
       let nudge = editor.setting.get('smallNudge');
       // 如果按下 shift 键，则设置为大微调值
       if (event.shiftKey) nudge = editor.setting.get('bigNudge');
-
-      // 如果按下左方向键，则移动图形
-      if (pressed.ArrowLeft) {
-        // 移动图形
-        SuikaGraphics.dMove(movedGraphicsArr, -nudge, 0);
-      }
-      // 如果按下右方向键，则移动图形
-      if (pressed.ArrowRight) {
-        // 移动图形
-        SuikaGraphics.dMove(movedGraphicsArr, nudge, 0);
-      }
-      // 如果按上方向键，则移动图形
-      if (pressed.ArrowUp) {
-        // 移动图形
-        SuikaGraphics.dMove(movedGraphicsArr, 0, -nudge);
-      }
-      // 如果按下下方向键，则移动图形
-      if (pressed.ArrowDown) {
-        // 移动图形
-        SuikaGraphics.dMove(movedGraphicsArr, 0, nudge);
-      }
-
+      // 移动
+      if (pressed.ArrowLeft) SuikaGraphics.dMove(movedGraphicsArr, -nudge, 0);
+      if (pressed.ArrowRight) SuikaGraphics.dMove(movedGraphicsArr, nudge, 0);
+      if (pressed.ArrowUp) SuikaGraphics.dMove(movedGraphicsArr, 0, -nudge);
+      if (pressed.ArrowDown) SuikaGraphics.dMove(movedGraphicsArr, 0, nudge);
       // 更新父级大小
       this.transaction.updateParentSize(movedGraphicsArr);
 
@@ -140,13 +119,11 @@ export class MoveGraphsKeyBinding {
       const key = e.key;
       // 如果按键在 pressed 中，则设置为 false
       if (key in pressed) {
-        // 设置为 false
-        pressed[key as keyof typeof pressed] = false;
+        const TempKey = key as keyof typeof pressed;
+        pressed[TempKey] = false;
       }
     };
-
     const keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-
     // 注册快捷键
     this.editor.keybindingManager.register({
       key: [
