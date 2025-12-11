@@ -25,7 +25,6 @@ export default defineConfig({
       plugins: [
         typescript({
           target: 'esnext',
-          rootDir: resolvePath('src'),
           declaration: true,
           declarationDir: resolvePath('dist'),
           exclude: resolvePath('node_modules/**'),
