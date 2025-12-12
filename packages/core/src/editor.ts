@@ -129,7 +129,6 @@ export class SuikaEditor {
     this.selectedBox = new SelectedBox(this);
     // 标尺管理器
     this.ruler = new Ruler(this);
-    // 参考线管理器
     this.refLine = new RefLine(this);
 
     this.controlHandleManager = new ControlHandleManager(this);
