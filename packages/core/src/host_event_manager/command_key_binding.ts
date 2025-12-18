@@ -316,7 +316,7 @@ export class CommandKeyBinding {
     });
 
     /*************** group **************/
-    // group
+    // 编组
     const groupAction = () => {
       groupAndRecord(this.editor.selectedElements.getItems(), editor);
       editor.render();

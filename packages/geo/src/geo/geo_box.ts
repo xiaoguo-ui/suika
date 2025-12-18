@@ -78,32 +78,39 @@ export const getPointsBbox = (points: IPoint[]): IBox => {
   };
 };
 
-/**
- * calculate AABB
- */
+// 计算变换后矩形的轴对齐包围盒
 export const calcRectBbox = (
   transformRect: ITransformRect,
   paddingBeforeTransform?: number,
 ): Readonly<IBox> => {
+  // 初始化矩形位置为原点
   let x = 0;
   let y = 0;
+  // 获取矩形的宽度和高度
   let width = transformRect.width;
   let height = transformRect.height;
+  // 如果指定了变换前填充，则在四个方向上扩展矩形
   if (paddingBeforeTransform) {
+    // 向左和向上扩展
     x -= paddingBeforeTransform;
     y -= paddingBeforeTransform;
+    // 在宽度和高度上增加两倍的填充（左右或上下各增加一份）
     width += paddingBeforeTransform * 2;
     height += paddingBeforeTransform * 2;
   }
+  // 获取变换矩阵
   const tf = transformRect.transform;
+  // 将矩形转换为四个顶点坐标，然后对每个顶点应用变换矩阵
   const vertices = rectToVertices({
     x,
     y,
     width,
     height,
   }).map((item) => {
+    // 对每个顶点应用变换矩阵
     return applyMatrix(tf, item);
   });
 
+  // 计算变换后顶点的最小轴对齐包围盒
   return getPointsBbox(vertices);
 };

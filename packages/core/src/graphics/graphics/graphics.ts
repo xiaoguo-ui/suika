@@ -58,13 +58,13 @@ import {
   type IGraphicsOpts,
 } from './graphics_attrs';
 
-/* 
-  整个图形编辑器的核心抽象，为所有具体图形类型（如矩形、圆形、文本等）提供了统一的接口和基础实现，使得图形对象能够被统一管理和操作。
-*/
 export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
   type = GraphicsType.Graph;
+  // 当前图形的属性
   attrs: ATTRS;
+  // 文档引用
   protected doc: SuikaDocument;
+  // 缓存描边包围盒
   protected _cacheBboxWithStroke: Readonly<IBox> | null = null;
   protected _cacheBbox: Readonly<IBox> | null = null;
   protected _cacheMinBbox: IBox | null = null;
@@ -73,11 +73,9 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
   noRender = false;
   private _deleted = false;
   private _sortDirty = false;
-  /**
-   * 是否不收集更新
-   */
+
+  // 是否不收集更新
   private noCollectUpdate: boolean;
-  // 用于初始化图形对象，设置属性、变换矩阵和默认值。
   constructor(
     attrs: Omit<Optional<ATTRS, 'transform'>, 'id'>,
     opts: IGraphicsOpts,
@@ -119,52 +117,65 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     this.noCollectUpdate = Boolean(opts?.noCollectUpdate);
   }
 
-  /**
-   * 获取图形属性
-   * @returns 图形属性
-   */
+  // 获取当前图形的属性
   getAttrs(): ATTRS {
     return cloneDeep(this.attrs);
   }
 
+  // 判断给定的属性变化是否需要更新包围盒缓存
   protected shouldUpdateBbox(attrs: Partial<GraphicsAttrs> & IAdvancedAttrs) {
     // TODO: if x, y, width, height value no change, bbox should not be updated
+    // 是否有属性会影响包围盒
     return (
+      // 位置坐标变化
       attrs.x !== undefined ||
       attrs.y !== undefined ||
+      // 尺寸变化
       attrs.width !== undefined ||
       attrs.height !== undefined ||
+      // 变换矩阵变化
       attrs.transform !== undefined ||
+      // 描边宽度变化
       'strokeWidth' in attrs ||
+      // 父级索引变化
       'parentIndex' in attrs
     );
   }
 
+  // 清除包围盒缓存
   protected clearBboxCache() {
     this._cacheBbox = null;
+    // 清除描边包围盒缓存
     this._cacheBboxWithStroke = null;
+    // 清除最小包围盒缓存
     this._cacheMinBbox = null;
   }
 
+  // 记录被更新的属性键名
   private updatedKeys = new Set<string>();
 
+  // 获取自上次调用以来被更新的属性，并清空更新键集合
   getUpdatedAttrs() {
+    // 从当前属性中挑选出被标记为已更新的属性
     const attrs = pick(this.attrs, [...this.updatedKeys]);
+    // 清空更新键集合
     this.updatedKeys.clear();
+    // 返回被更新的属性对象
     return attrs;
   }
 
+  // 更新图形属性
   updateAttrs(
     partialAttrs: Partial<GraphicsAttrs> & IAdvancedAttrs,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options?: { finishRecomputed?: boolean },
   ) {
     // TODO: 提示，x、y、rotation 不能和 transform 同时存在，否则效果不可预测
-    // 目前是后者会覆盖前者
+    // 如果属性变化会影响包围盒，则清除缓存
     if (this.shouldUpdateBbox(partialAttrs)) {
       this.clearBboxCache();
     }
-
+    // 处理描边宽度为undefined的特殊情况
     if (
       'strokeWidth' in partialAttrs &&
       partialAttrs.strokeWidth === undefined
@@ -172,47 +183,54 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
       partialAttrs.strokeWidth = 1;
     }
 
+    // 如果没有直接设置transform，则处理x、y坐标更新到变换矩阵中
     if (!partialAttrs.transform) {
       if (partialAttrs.x !== undefined || partialAttrs.y !== undefined) {
+        // 克隆当前的变换矩阵
         const tf = cloneDeep(this.attrs.transform);
-        if (partialAttrs.x) {
-          tf[4] = partialAttrs.x;
-        }
-        if (partialAttrs.y) {
-          tf[5] = partialAttrs.y;
-        }
+        // 更新变换矩阵中的x,y坐标
+        if (partialAttrs.x) tf[4] = partialAttrs.x;
+        if (partialAttrs.y) tf[5] = partialAttrs.y;
+        // 更新图形属性中的变换矩阵
         this.attrs.transform = tf;
+        // 记录transform属性已被更新
         this.updatedKeys.add('transform');
       }
     }
+    // 处理旋转角度
+    if (partialAttrs.rotate !== undefined) this.setRotate(partialAttrs.rotate);
 
-    if (partialAttrs.rotate !== undefined) {
-      this.setRotate(partialAttrs.rotate);
-    }
+    // 从属性对象中移除已处理的x、y、rotate属性，避免重复设置
     partialAttrs = omit(partialAttrs, 'x', 'y', 'rotate');
+    // 遍历剩余的属性，更新到图形属性对象中
     for (const key in partialAttrs) {
+      // 记录被更新的属性键名
       this.updatedKeys.add(key);
+      // 使用类型断言更新属性值
       // eslint-disable-next-line @typescript-eslint/no-this-alias, @typescript-eslint/no-explicit-any
       (this.attrs as any)[key] = partialAttrs[key as keyof typeof partialAttrs];
     }
 
+    // 如果启用了更新收集或者图形有父级，则收集更新的图形用于后续处理
     if (!this.noCollectUpdate || this.attrs.parentIndex) {
       this.doc.collectUpdatedGraphics(this.attrs.id);
     }
   }
-
+  // 取消收集更新
   cancelCollectUpdate() {
     this.noCollectUpdate = true;
   }
-
+  // 获取描边宽度
   getStrokeWidth() {
     return this.attrs.strokeWidth ?? 0;
   }
 
+  // 获取包含描边扩展的图形包围盒，使用缓存优化性能
   getBboxWithStroke() {
-    if (this._cacheBboxWithStroke) {
-      return this._cacheBboxWithStroke;
-    }
+    // 如果有缓存的包围盒，直接返回以提高性能
+    if (this._cacheBboxWithStroke) return this._cacheBboxWithStroke;
+
+    // 计算包含描边的包围盒：图形尺寸、变换矩阵和描边宽度的一半作为扩展
     const bbox = calcRectBbox(
       {
         ...this.getSize(),
@@ -220,7 +238,9 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
       },
       this.getStrokeWidth() / 2,
     );
+    // 缓存计算结果，避免重复计算
     this._cacheBboxWithStroke = bbox;
+    // 返回包含描边的包围盒
     return bbox;
   }
 
@@ -257,7 +277,9 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return rectToVertices(rect, this.getWorldTransform());
   }
 
+  // 获取图形的本地坐标位置（相对于父容器的位置）
   getLocalPosition() {
+    // 从变换矩阵中提取x、y坐标值
     return { x: this.attrs.transform[4], y: this.attrs.transform[5] };
   }
 
@@ -274,14 +296,15 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return this.attrs.transform[5];
   }
 
+  // 获取图形的尺寸
   getSize() {
     return { width: this.attrs.width, height: this.attrs.height };
   }
-
+  // 获取图形的透明度
   getOpacity() {
     return this.attrs.opacity ?? 1;
   }
-
+  // 获取图形的本地坐标矩形
   getRect() {
     return {
       ...this.getLocalPosition(),
@@ -643,14 +666,20 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return rad2Deg(normalizeRadian(this.getRotate()));
   }
 
+  // 设置图形的旋转角度，以指定的中心点为旋转轴
   setRotate(newRotate: number, center?: IPoint) {
+    // 获取当前旋转角度
     const rotate = this.getRotate();
+    // 计算旋转角度差值
     const delta = newRotate - rotate;
+    // 如果没有指定旋转中心，则使用图形的世界坐标中心点
     center ??= this.getWorldCenter();
+    // 创建旋转变换矩阵：先平移到原点，再旋转，最后平移回原位置
     const rotateMatrix = new Matrix()
       .translate(-center.x, -center.y)
       .rotate(delta)
       .translate(center.x, center.y);
+    // 将旋转变换矩阵应用到图形的变换矩阵前缀
     this.prependWorldTransform(rotateMatrix.getArray());
   }
 
@@ -956,19 +985,18 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return graphicsArr;
   }
 
+  // 获取当前图形的父图形ID
   getParentId() {
     return this.attrs.parentIndex?.guid;
   }
 
-  /**
-   * 获取图形父级
-   * @returns { SuikaGraphics | undefined } 父级图形
-   */
+  // 获取当前图形的父图形对象
   getParent() {
+    // 获取父图形的ID标识符
     const parentId = this.getParentId();
-    if (!parentId) {
-      return undefined;
-    }
+    // 如果没有父图形ID（说明是根层级图形），返回undefined
+    if (!parentId) return undefined;
+    // 通过文档对象根据ID查找并返回父图形对象
     return this.doc.getGraphicsById(parentId);
   }
 
@@ -1018,7 +1046,9 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return minIndex;
   }
 
+  // 获取当前图形的排序索引位置
   getSortIndex() {
+    // 返回图形在父容器中的位置索引
     return this.attrs.parentIndex?.position ?? '';
   }
 
@@ -1035,36 +1065,79 @@ export class SuikaGraphics<ATTRS extends GraphicsAttrs = GraphicsAttrs> {
     return children[index + 1] ?? null;
   }
 
+  // 获取从当前图形节点到根节点的完整排序索引路径
   getSortIndexPath() {
     const path: string[] = [];
+
+    // 从当前节点开始遍历
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let node: SuikaGraphics | undefined = this;
+    // 向上遍历到根节点，收集每个层级的排序索引
     while (node) {
+      // 将当前节点的排序索引添加到路径数组
       path.push(node.getSortIndex());
+      // 移动到父节点，继续向上遍历
       node = node.getParent();
     }
+    // 从根节点到当前节点的顺序排列
     path.reverse();
     return path;
   }
 
+  /* 为什么需要这样处理？
+
+    画板根层级
+    ├── 图形A (sortIndex: "a")
+    ├── 组1 (sortIndex: "b") 
+    │   ├── 图形B (sortIndex: "a1")
+    │   └── 图形C (sortIndex: "a2")
+    └── 图形D (sortIndex: "c")
+
+  getSortIndexPath() 返回的是从根节点到当前节点的完整路径：
+    图形A: ["a"]
+    图形B: ["b", "a1"] (组1的索引 + 在组内的索引)
+    图形C: ["b", "a2"]
+
+  理由：
+  图形的绘制顺序决定了哪些图形显示在前面，哪些被覆盖。排序算法需要确保：
+    路径 ["a"] 的图形绘制在路径 ["b", "a1"] 之前
+    同组内的 ["b", "a1"] 绘制在 ["b", "a2"] 之前
+  
+
+  */
+
+  // 按照图形在层级结构中的排序索引路径对图形数组进行排序
   static sortGraphics(graphics: SuikaGraphics[]) {
+    // 将每个图形映射为包含排序路径和图形对象的元素，用于后续排序
     const elements = graphics.map((item) => ({
       path: item.getSortIndexPath(),
       val: item,
     }));
 
+    // 按照排序路径进行比较排序，确保图形按正确的层级顺序排列
     elements.sort((a, b) => {
+      // 获取两个路径中的最大长度作为比较循环的上限
       const len = Math.max(a.path.length, b.path.length);
+      // 从路径的第一个索引开始逐级比较
+      // 父级优先: 如果 ["a"] vs ["b", "x"]，比较第一级 "a" < "b"，直接返回结果
+      // 同父级排序: 如果 ["b", "a1"] vs ["b", "a2"]，第一级相同，继续比较第二级
       for (let i = 0; i < len; i++) {
         const sortIdxA = a.path[i];
         const sortIdxB = b.path[i];
+        // 如果当前级别的排序索引相等，继续比较下一级别
         if (sortIdxA === sortIdxB) {
           continue;
         }
+        // 返回较小排序索引的元素优先排列
         return sortIdxA < sortIdxB ? -1 : 1;
       }
+      // 如果所有级别的排序索引都相等，则路径较短的元素优先排列
+      // 当所有级别的索引都相同时，路径较短的元素优先。这确保了：
+      // 父级容器始终排在子元素之前
+      // 避免了排序的不确定性
       return a.path.length < b.path.length ? -1 : 1;
     });
+    // 返回排序后的图形对象数组，丢弃临时创建的路径信息
     return elements.map((item) => item.val);
   }
 
