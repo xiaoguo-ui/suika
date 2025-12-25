@@ -66,16 +66,7 @@ export const getClosestTimesVal = (value: number, segment: number) => {
   return value - left <= right - value ? left : right;
 };
 
-/**
- * 将视口坐标转换为场景坐标
- * @param x 视口坐标x
- * @param y 视口坐标y
- * @param zoom 缩放比例
- * @param scrollX 视口x偏移量
- * @param scrollY 视口y偏移量
- * @param round 是否四舍五入
- * @returns 场景坐标 { x, y }
- */
+// 将视口坐标转换为场景坐标
 export const viewportCoordsToSceneUtil = (
   x: number,
   y: number,
@@ -84,19 +75,18 @@ export const viewportCoordsToSceneUtil = (
   scrollY: number,
   round = false,
 ) => {
-  // 视口坐标x → 场景坐标x
+  // 坐标转换计算
   let newX = scrollX + x / zoom;
-  // 视口坐标y → 场景坐标y
   let newY = scrollY + y / zoom;
-  // 是否四舍五入
+  // 可选四舍五入
   if (round) {
     newX = Math.round(newX);
     newY = Math.round(newY);
   }
-  // 返回场景坐标 { x, y }
   return { x: newX, y: newY };
 };
 
+// 将场景坐标转换为视口坐标
 export const sceneCoordsToViewportUtil = (
   x: number,
   y: number,
@@ -196,12 +186,29 @@ export const calcCoverScale = (
   return scale;
 };
 
-// find the closest value in sorted Array
-// (Thanks for Github copilot)
+/**
+ * 在排序数组中找到最接近目标值的元素
+ * 使用二分查找算法，时间复杂度 O(log n)
+ *
+ * @param sortedArr - 已排序的数字数组（升序）
+ * @param target - 目标数值
+ * @returns 最接近目标值的数组元素
+ * @throws 当数组为空时抛出错误
+ *
+ * @example
+ * ```typescript
+ * const arr = [1, 3, 5, 7, 9];
+ * getClosestValInSortedArr(arr, 4); // 返回 3 (3 和 5 距离 4 都是 1，选择较小的 3)
+ * getClosestValInSortedArr(arr, 6); // 返回 5
+ * getClosestValInSortedArr(arr, 0); // 返回 1 (数组最小值)
+ * getClosestValInSortedArr(arr, 10); // 返回 9 (数组最大值)
+ * ```
+ */
 export const getClosestValInSortedArr = (
   sortedArr: number[],
   target: number,
 ) => {
+  // 处理边界情况
   if (sortedArr.length === 0) {
     throw new Error('sortedArr can not be empty');
   }
@@ -209,30 +216,39 @@ export const getClosestValInSortedArr = (
     return sortedArr[0];
   }
 
+  // 初始化二分查找的左右指针
   let left = 0;
   let right = sortedArr.length - 1;
 
+  // 二分查找：寻找最接近target的元素位置
   while (left <= right) {
     const mid = Math.floor((left + right) / 2);
 
     if (sortedArr[mid] === target) {
+      // 找到精确匹配，直接返回
       return sortedArr[mid];
     } else if (sortedArr[mid] < target) {
+      // 中间值小于目标，搜索右半部分
       left = mid + 1;
     } else {
+      // 中间值大于目标，搜索左半部分
       right = mid - 1;
     }
   }
 
-  // check if left or right is out of bound
+  // 二分查找结束后，left > right，此时left和right指向可能的候选值
+  // 检查边界情况：确保指针没有越界
   if (left >= sortedArr.length) {
+    // left越界，返回right指向的元素（数组最大值）
     return sortedArr[right];
   }
   if (right < 0) {
+    // right越界，返回left指向的元素（数组最小值）
     return sortedArr[left];
   }
 
-  // check which one is closer
+  // 比较两个候选值哪个更接近target
+  // 如果距离相等，选择较小的值（保持稳定排序）
   return Math.abs(sortedArr[right] - target) <=
     Math.abs(sortedArr[left] - target)
     ? sortedArr[right]

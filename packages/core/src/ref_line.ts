@@ -219,57 +219,63 @@ export class RefLine {
     return targetPoints;
   }
 
-  /**
-   * update ref line
-   * and return offset
-   */
+  // 计算图形到参考线的吸附偏移
   getGraphicsSnapOffset(targetPoints: IPoint[]): IPoint {
     this.toDrawVLines = [];
     this.toDrawHLines = [];
 
-    let vTargetLines = pointsToVLines(targetPoints); // 目标矩形的垂直线
-    let vTargetLineKeys = Array.from(vTargetLines.keys()); // 目标矩形的垂直线的 x 坐标
-    let hTargetLines = pointsToHLines(targetPoints); // 目标矩形的水平线
-    let hTargetLineKeys = Array.from(hTargetLines.keys()); // 目标矩形的水平线的 y 坐标
+    // 转换目标点为线段 垂直线映射
+    let vTargetLines = pointsToVLines(targetPoints);
+    let vTargetLineKeys = Array.from(vTargetLines.keys());
 
-    const vRefLineMap = this.vRefLineMap;
-    const hRefLineMap = this.hRefLineMap;
-    const sortedXs = this.sortedXs;
-    const sortedYs = this.sortedYs;
+    // 转换目标点为线段 水平线映射
+    let hTargetLines = pointsToHLines(targetPoints);
+    let hTargetLineKeys = Array.from(hTargetLines.keys());
 
-    // there are no reference graphs
-    if (sortedXs.length === 0 && sortedYs.length === 0) {
-      return { x: 0, y: 0 };
-    }
+    const { vRefLineMap, hRefLineMap, sortedXs, sortedYs } = this;
+
+    // 无参考图形时返回零偏移
+    if (sortedXs.length === 0 && sortedYs.length === 0) return { x: 0, y: 0 };
 
     let offsetX: number | undefined = undefined;
     let offsetY: number | undefined = undefined;
 
+    // TODO 比较麻烦 == 寻找到最近的垂直参考线 X
+    // 例如：图形垂直线x=[50, 150], 参考线x=[0, 100, 200]
+    // 最近参考线: closestXs=[0, 200] (50→0, 150→200)
     const closestXs = arrMap(vTargetLineKeys, (x) =>
       getClosestValInSortedArr(sortedXs, x),
     );
-    // 目标矩形的每个 x 坐标离它们最近的参照线的差值
+    // 图形垂直线与最近参考线之间的距离差值
+    // closestXDiffs = [0-50, 200-150] = [-50, 50]
     const closestXDiffs = arrMap(vTargetLineKeys, (x, i) => closestXs[i] - x);
+    // 计算所有X方向距离差值中的最小绝对距离（用于判断是否在吸附范围内）
+    // closestXDist = min(|-50|, |50|) = 50
     const closestXDist = Math.min(
       ...arrMap(closestXDiffs, (item) => Math.abs(item)),
     );
 
+    // TODO 比较麻烦 == 寻找到最近的水平参考线 Y
+    // 例如：图形水平线y=[50, 150], 参考线y=[0, 100, 200]
+    // 最近参考线: closestYs=[0, 200] (50→0, 150→200)
     const closestYs = arrMap(hTargetLineKeys, (y) =>
       getClosestValInSortedArr(sortedYs, y),
     );
-    // 目标矩形的每个 y 坐标离它们最近的参照线的差值
+    // 计算目标图形水平线与最近参考线之间的距离差值
+    // closestYDiffs = [0-50, 200-150] = [-50, 50]
     const closestYDiffs = arrMap(hTargetLineKeys, (y, i) => closestYs[i] - y);
+    // 计算所有Y方向距离差值中的最小绝对距离（用于判断是否在吸附范围内）
+    // closestYDist = min(|-50|, |50|) = 50
     const closestYDist = Math.min(
       ...arrMap(closestYDiffs, (item) => Math.abs(item)),
     );
 
     const isEqualNum = (a: number, b: number) => Math.abs(a - b) < 0.00001;
-
     const tol =
       this.editor.setting.get('refLineTolerance') /
       this.editor.zoomManager.getZoom();
 
-    // 确定最终偏移值 offsetX
+    // 计算X偏移
     if (closestXDist <= tol) {
       for (const closestXDiff of closestXDiffs) {
         if (isEqualNum(closestXDist, Math.abs(closestXDiff))) {
@@ -282,7 +288,7 @@ export class RefLine {
       }
     }
 
-    // 再确认偏移值 offsetY
+    // 计算Y偏移
     if (closestYDist <= tol) {
       for (const closestYDiff of closestYDiffs) {
         if (isEqualNum(closestYDist, Math.abs(closestYDiff))) {
@@ -295,23 +301,23 @@ export class RefLine {
       }
     }
 
+    // 应用偏移到目标点
     const correctedTargetPoints: IPoint[] = arrMap(targetPoints, (p) => ({
       x: p.x + (offsetX ?? 0),
       y: p.y + (offsetY ?? 0),
     }));
 
     vTargetLines = pointsToVLines(correctedTargetPoints);
-    vTargetLineKeys = Array.from(vTargetLines.keys()); // 对应 x
+    vTargetLineKeys = Array.from(vTargetLines.keys());
 
+    // 标记垂直参考线
     if (offsetX !== undefined) {
-      /*************** 标记需要绘制的垂直参考线 ************/
       forEach(vTargetLineKeys, (y, i) => {
         if (isEqualNum(offsetX!, closestXDiffs[i])) {
           const vLine: IVerticalLine = {
             x: closestXs[i],
             ys: [],
           };
-
           vLine.ys.push(...vTargetLines.get(y)!);
           vLine.ys.push(...Array.from(vRefLineMap.get(y)! ?? []));
           this.toDrawVLines.push(vLine);
@@ -319,10 +325,10 @@ export class RefLine {
       });
     }
 
+    // 标记水平参考线
     if (offsetY !== undefined) {
-      /*************** 标记需要绘制的水平参考线 ************/
       hTargetLines = pointsToHLines(correctedTargetPoints);
-      hTargetLineKeys = Array.from(hTargetLines.keys()); // 对应 y
+      hTargetLineKeys = Array.from(hTargetLines.keys());
 
       forEach(hTargetLineKeys, (x, i) => {
         if (isEqualNum(offsetY!, closestYDiffs[i])) {
@@ -330,10 +336,8 @@ export class RefLine {
             y: closestYs[i],
             xs: [],
           };
-
           hLine.xs.push(...hTargetLines.get(x)!);
           hLine.xs.push(...Array.from(hRefLineMap.get(x) ?? []));
-
           this.toDrawHLines.push(hLine);
         }
       });

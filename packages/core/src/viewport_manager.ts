@@ -22,10 +22,7 @@ export class ViewportManager {
   private eventEmitter = new EventEmitter<Events>();
 
   constructor(private editor: SuikaEditor) {}
-  /**
-   * 获取视口区域
-   * @returns 视口区域
-   */
+  // 获取视口区域（滚动位置和画布尺寸）
   getViewport(): IRect {
     return {
       x: this.scrollX,

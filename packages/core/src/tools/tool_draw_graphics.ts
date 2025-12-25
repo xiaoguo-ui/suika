@@ -35,10 +35,7 @@ export abstract class DrawGraphicsTool implements ITool {
    */
   protected drawingGraphics: SuikaGraphics | null = null;
 
-  /**
-   * 起始点
-   * @description 起始点，用于计算矩形的起点
-   */
+  // 起点，保存的是场景坐标，这可能是一个吸附点
   private startPoint: IPoint = { x: -1, y: -1 };
   /**
    * 拖拽点在场景中的坐标
@@ -71,9 +68,7 @@ export abstract class DrawGraphicsTool implements ITool {
 
   // 激活工具
   onActive() {
-    // 获取编辑器实例
     const editor = this.editor;
-    // 获取修饰键管理器
     const hotkeysManager = editor.hostEventManager;
     // 更新矩形
     const updateRect = () => {
@@ -122,7 +117,6 @@ export abstract class DrawGraphicsTool implements ITool {
     );
     // 当视口位置（x或y坐标）发生变化时，更新正在绘制的矩形。
     editor.viewportManager.on('xOrYChange', updateRectWhenViewportTranslate);
-    // 绑定清理函数
     this.unbindEvent = () => {
       hotkeysManager.off('shiftToggle', updateRect);
       editor.viewportManager.off(
@@ -156,64 +150,49 @@ export abstract class DrawGraphicsTool implements ITool {
   onMoveExcludeDrag() {
     // do nothing;
   }
-  /**
-   * 开始绘制图形
-   * @param e PointerEvent
-   * @description 开始绘制图形
-   */
+  // 开始绘制图形
   onStart(e: PointerEvent) {
-    // 获取鼠标点击的起点【网格吸附点】
+    // 获取吸附起点
     this.startPoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
     );
-    // 重置绘制图形
+    // 重置状态
     this.drawingGraphics = null;
-    // 重置拖拽状态
     this.isDragging = false;
-    // 重置临时起点
     this.startPointWhenSpaceDown = null;
-    // 重置临时拖拽点
     this.lastDragPointWhenSpaceDown = null;
   }
-  /**
-   * 拖拽绘制图形
-   * @param e PointerEvent
-   * @description 拖拽绘制图形
-   */
+  // 拖拽绘制图形
   onDrag(e: PointerEvent) {
-    // 禁用删除
+    // 禁用删除和右键菜单
     this.editor.hostEventManager.disableDelete();
-    // 禁用右键菜单
     this.editor.hostEventManager.disableContextmenu();
-    // 如果正在拖拽画布，则不进行绘制
-    if (this.editor.hostEventManager.isDraggingCanvasBySpace) {
-      return;
-    }
-    // 获取鼠标在视口中的位置
+    // 画布拖拽时不绘制
+    if (this.editor.hostEventManager.isDraggingCanvasBySpace) return;
+    // 获取视口坐标
     this.lastDragPointInViewport = this.editor.getCursorXY(e);
 
-    // 获取鼠标在场景中的位置
+    // 获取吸附场景坐标
     this.lastDragPoint = this.lastMousePoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
     );
-    // 如果未开始拖拽且启用对象捕捉，则缓存参考线
+    // 对象捕捉时缓存参考线
     if (!this.isDragging && this.editor.setting.get('snapToObjects')) {
       this.editor.refLine.cacheGraphicsRefLines();
     }
-    // 获取参考线偏移量
+    // 计算参考线偏移
     const offset = this.editor.refLine.getGraphicsSnapOffset([
       this.lastDragPoint,
     ]);
-    // 更新拖拽点
+    // 应用偏移
     this.lastDragPoint = {
       x: this.lastDragPoint.x + offset.x,
       y: this.lastDragPoint.y + offset.y,
     };
-    // 设置拖拽状态
+    // 更新拖拽状态和绘制
     this.isDragging = true;
-    // 更新绘制矩形
     this.updateRect();
   }
   /**

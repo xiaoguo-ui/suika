@@ -232,19 +232,12 @@ export class SuikaEditor {
   getCursor() {
     return this.cursorManager.getCursor();
   }
-  /**
-   * 将视口坐标转换为场景坐标
-   * @param x 视口坐标x
-   * @param y 视口坐标y
-   * @param round 是否四舍五入
-   * @returns 场景坐标 { x, y }
-   */
+  // 将视口坐标转换为场景坐标
   toScenePt(x: number, y: number, round = false) {
-    // 获取缩放比例
+    // 获取缩放和视口信息
     const zoom = this.zoomManager.getZoom();
-    // 获取视口
     const { x: scrollX, y: scrollY } = this.viewportManager.getViewport();
-    // 视口坐标 → 场景坐标
+    // 执行坐标转换
     return viewportCoordsToSceneUtil(x, y, zoom, scrollX, scrollY, round);
   }
   toViewportPt(x: number, y: number) {
@@ -260,26 +253,17 @@ export class SuikaEditor {
     const zoom = this.zoomManager.getZoom();
     return size * zoom;
   }
-  /**
-   * 目的：为了将浏览器事件坐标转换为画布坐标系下的坐标
-   * @param event 鼠标事件
-   * @returns 视口坐标
-   */
+  // 将浏览器坐标转换为视口坐标
   getCursorXY(event: { clientX: number; clientY: number }) {
-    // 减去画布容器的偏移量（offsetX, offsetY）
+    // 减去容器偏移量
     return {
       x: event.clientX - this.setting.get('offsetX'),
       y: event.clientY - this.setting.get('offsetY'),
     };
   }
-  /**
-   * 将浏览器事件坐标（clientX, clientY）转换为场景坐标（Scene Coordinates）
-   * @param event 事件对象
-   * @param round 是否四舍五入
-   * @returns 场景坐标
-   */
+  // 将浏览器坐标转换为场景坐标
   getSceneCursorXY(event: { clientX: number; clientY: number }, round = false) {
-    // 浏览器坐标 → 视口坐标
+    // 获取视口坐标
     const { x, y } = this.getCursorXY(event);
     // 转换为场景坐标
     return this.toScenePt(x, y, round);

@@ -19,25 +19,50 @@ export const getBoxCenter = (box: IBox) => {
   };
 };
 
+/**
+ * 将点数组转换为垂直线映射，每个x坐标对应该垂直线上所有点的y坐标数组
+ * @param points - 点数组
+ * @example
+ * const points = [
+ *   { x: 10, y: 20 },
+ *   { x: 10, y: 30 },
+ *   { x: 20, y: 25 },
+ *   { x: 10, y: 40 }
+ * ];
+ * const vLines = pointsToVLines(points);
+ *  vLines.get(10) === [20, 30, 40]
+ *  vLines.get(20) === [25]
+ */
 export const pointsToVLines = (points: IPoint[]): Map<number, number[]> => {
   const map = new Map<number, number[]>();
   for (const point of points) {
     const { x, y } = point;
-    if (!map.has(x)) {
-      map.set(x, []);
-    }
+    if (!map.has(x)) map.set(x, []);
     map.get(x)!.push(y);
   }
   return map;
 };
 
+/**
+ * 将点数组转换为水平线映射，每个y坐标对应该水平线上所有点的x坐标数组
+ * @param points - 点数组
+ * @example
+ * const points = [
+ *   { x: 10, y: 20 },
+ *   { x: 15, y: 20 },
+ *   { x: 20, y: 20 },
+ *   { x: 10, y: 25 },
+ *   { x: 10, y: 30 }
+ * ];
+ * const hLines = pointsToHLines(points);
+ *  hLines.get(20) === [10, 15, 20]
+ *  hLines.get(25) === [10]
+ */
 export const pointsToHLines = (points: IPoint[]): Map<number, number[]> => {
   const map = new Map<number, number[]>();
   for (const point of points) {
     const { x, y } = point;
-    if (!map.has(y)) {
-      map.set(y, []);
-    }
+    if (!map.has(y)) map.set(y, []);
     map.get(y)!.push(x);
   }
   return map;
