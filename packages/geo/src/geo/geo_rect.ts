@@ -13,6 +13,7 @@ import { normalizeRadian } from './geo_angle';
 import { Matrix } from './geo_matrix_class';
 import { distance } from './geo_point';
 
+// 1、
 export const getRectByTwoPoint = (point1: IPoint, point2: IPoint): IRect => {
   return {
     x: Math.min(point1.x, point2.x),

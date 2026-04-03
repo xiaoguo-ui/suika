@@ -398,7 +398,78 @@ ToolManager → 当前激活工具 (如 SelectTool / DrawRectTool)
 
 ---
 
-## 十二、技术亮点总结
+## 十二、设计模式与 Spec 索引
+
+项目中运用了 7 种核心设计模式，每种都有对应的 Spec 文档深入讲解：
+
+| 设计模式 | 应用场景 | Spec 文档 |
+|---------|---------|----------|
+| **模板方法** | `DrawGraphicsTool` 基类，子类只重写 `createGraphics` | `specs/rect-draw.spec.md` |
+| **策略模式** | `SelectTool` 委托 Move/Resize/Rotate/Selection 策略 | `specs/select-tool.spec.md` |
+| **命令模式** | `CommandManager` + `ICommand` + `Transaction` | `specs/undo-redo.spec.md` |
+| **场景树** | Document → Canvas → Graphics 递归渲染 | `specs/rendering.spec.md` |
+| **树形数据 + 分数索引** | `parentIndex` + `fractional-indexing` 排序 | `specs/layer-system.spec.md` |
+| **编辑模式** | `PathEditor` 隔离路径编辑 / `TextEditor` 隔离文本编辑 | `specs/pen-tool.spec.md`、`specs/text-tool.spec.md` |
+| **相机模型** | `scroll + zoom` 两参数坐标系 | `specs/viewport-zoom.spec.md` |
+
+---
+
+## 十三、面试导航图
+
+```
+面试官问"整体架构"
+  → 用本文档的【二、包依赖关系】+【三、编辑器内核架构】回答
+
+面试官问"某个具体功能怎么实现的"
+  → 找对应 Spec 的【核心代码路径】章节
+
+面试官问"为什么这么设计"
+  → 找对应 Spec 的【架构设计决策（知其所以然）】章节
+
+面试官问"用了什么设计模式"
+  → 用上面【十二、设计模式索引】表格回答，展开讲 1-2 个
+```
+
+**推荐讲述顺序**（2-3 分钟介绍完项目）：
+
+1. **一句话定位**："这是一个基于 Canvas 2D 的矢量图形编辑器，对标 Figma"
+2. **技术选型**："Monorepo + TypeScript，核心是 `@suika/core` 包，不依赖任何渲染框架"
+3. **核心架构**："中心是 `SuikaEditor` 聚合类，下面挂文档系统、工具系统、命令系统三大块"
+4. **挑一个亮点展开**（根据面试官反应选）：
+   - 工具系统 → 模板方法 + 策略模式
+   - 撤销重做 → 命令模式 + Transaction
+   - 渲染管线 → 场景树递归 + DPR + 视口变换
+5. **加分项**："还支持多人协同，用 Yjs CRDT 通过 WebSocket 同步"
+
+---
+
+## 十四、性能优化速查（面试用）
+
+面试官问"你做了哪些性能优化"时，按以下分类回答：
+
+### 渲染层
+- **`rafThrottle`**：多次 `render()` 调用合并到一个 `requestAnimationFrame`，避免一帧内重复渲染
+- **Off-screen Canvas**：半透明图形先画到离屏 Canvas，再整体贴到主 Canvas，避免 alpha 叠加失真
+- **DPR 适配**：`canvas.width = cssWidth × devicePixelRatio`，Retina 屏不模糊，普通屏不浪费像素
+- **脏区跳过**：`isVisible() === false` 或 `opacity === 0` 的图形直接跳过绘制
+
+### 数据层
+- **全局 Map O(1) 查找**：`GraphicsStoreManager` 用 `Map<id, graphics>` 存所有图形，按 id 查找 O(1)
+- **fractional-indexing O(1) 插入**：排序键是字符串，插入新元素只需生成一个中间键，不移动其他元素
+- **字形缓存**：`SuikaText._glyphs` 缓存字形测量结果，content/fontSize 不变时不重算
+- **二分查找**：文本光标定位 O(log n)、缩放级别查找 O(log n)
+
+### 事件层
+- **sceneChange 100ms 节流**：图形属性变更只收集到 Set，100ms 后合并成一次事件通知外部（协同/图层面板）
+- **空操作跳过**：对齐前 `isAlreadyAligned` 检查、已在顶层再置顶直接 return，不生成空命令
+- **zoomStep 对数映射**：`log(|deltaY|)` 让触控板慢划有响应、快划不过冲
+
+### 面试话术
+> "性能优化分三层：渲染层用 `rafThrottle` 合并重绘 + 离屏 Canvas 处理透明度；数据层用全局 Map 做 O(1) 查找 + fractional-indexing 做 O(1) 插入；事件层用节流合并高频变更通知。核心思路是**减少不必要的计算和渲染**。"
+
+---
+
+## 十五、技术亮点总结
 
 1. **分层架构**：`geo → common → core → components → apps`，关注点分离清晰
 2. **命令模式**：完整的撤销/重做系统，支持批量命令和宏命令
@@ -407,4 +478,4 @@ ToolManager → 当前激活工具 (如 SelectTool / DrawRectTool)
 5. **坐标变换**：视口坐标 ↔ 场景坐标的双向转换，支持无限画布
 6. **CRDT 协同**：Yjs 实现无冲突数据同步，与编辑器内核解耦
 7. **几何引擎**：独立的几何计算库，包含贝塞尔曲线、矩阵变换、命中检测等
-8. **性能优化**：Canvas 2D 直接渲染、PerfMonitor 帧监控
+8. **性能优化**：Canvas 2D 直接渲染、rafThrottle 帧节流、PerfMonitor 监控

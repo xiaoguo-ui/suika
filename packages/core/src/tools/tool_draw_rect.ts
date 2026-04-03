@@ -25,13 +25,17 @@ export class DrawRectTool extends DrawGraphicsTool implements ITool {
     this.commandDesc = 'Add Rect';
   }
 
+  // 矩形工具与其他绘制工具的唯一区别：创建 SuikaRect 实例
   protected override createGraphics(rect: IRect, parent: SuikaGraphics) {
+    // [规则1] normalizeRect 处理反向拖拽产生的负宽高
     rect = normalizeRect(rect);
     const graphics = new SuikaRect(
       {
+        // [规则6] 自动命名：同层级内不冲突（Rectangle 1, 2, 3...）
         objectName: getNoConflictObjectName(parent, GraphicsObjectSuffix.Rect),
         width: rect.width,
         height: rect.height,
+        // [规则5] 默认灰色填充(217,217,217)，cloneDeep 防止多个矩形共享颜色对象
         fill: [cloneDeep(this.editor.setting.get('firstFill'))],
       },
       {

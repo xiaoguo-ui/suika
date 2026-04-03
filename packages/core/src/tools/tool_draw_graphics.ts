@@ -118,7 +118,7 @@ export abstract class DrawGraphicsTool implements ITool {
   onMoveExcludeDrag() {
     // do nothing;
   }
-
+  // 鼠标按下：记录吸附后的起点，重置所有拖拽状态，为新一轮绘制做准备
   onStart(e: PointerEvent) {
     this.startPoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
@@ -130,7 +130,10 @@ export abstract class DrawGraphicsTool implements ITool {
     this.lastDragPointWhenSpaceDown = null;
   }
 
+  // 拖拽时
+  // 拖拽中：锁定操作 → 修正坐标（吸附+参考线） → 交给 updateRect 创建或更新图形
   onDrag(e: PointerEvent) {
+    // 拖拽期间禁止删除和右键菜单，防止误操作
     this.editor.hostEventManager.disableDelete();
     this.editor.hostEventManager.disableContextmenu();
     if (this.editor.hostEventManager.isDraggingCanvasBySpace) {
@@ -138,6 +141,7 @@ export abstract class DrawGraphicsTool implements ITool {
     }
     this.lastDragPointInViewport = this.editor.getCursorXY(e);
 
+    // 坐标修正：先网格吸附，再参考线吸附，得到最终的拖拽点
     this.lastDragPoint = this.lastMousePoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
@@ -177,9 +181,7 @@ export abstract class DrawGraphicsTool implements ITool {
     return rect;
   }
 
-  /**
-   * update graphics, and give the original rect (width may be negative)
-   */
+  // [规则1] 更新图形属性，normalizeRect 处理负宽高（反向拖拽时产生）
   protected updateGraphics(rect: IRect) {
     rect = normalizeRect(rect);
     const drawingShape = this.drawingGraphics!;
@@ -209,6 +211,7 @@ export abstract class DrawGraphicsTool implements ITool {
     const { x, y } = this.lastDragPoint;
     const sceneGraph = this.editor.sceneGraph;
 
+    // [规则3-Space] 空格平移起点：拖拽中按住空格时，将起点跟随鼠标平移，松开空格后继续调整大小
     if (this.startPointWhenSpaceDown && this.lastDragPointWhenSpaceDown) {
       const { x: sx, y: sy } = this.startPointWhenSpaceDown;
       const { x: lx, y: ly } = this.lastDragPointWhenSpaceDown;
@@ -220,11 +223,12 @@ export abstract class DrawGraphicsTool implements ITool {
       };
     }
 
+    // 主干：用终点减起点算出宽高（可能为负值，后续 normalizeRect 会处理）
     const { x: startX, y: startY } = this.startPoint;
-
     let width = x - startX;
     let height = y - startY;
 
+    // [规则7] 边界处理：宽或高为零时用网格步长撑开，避免画出不可见的图形
     if (width === 0 || height === 0) {
       const size = this.solveWidthOrHeightIsZero(
         { width, height },
@@ -241,15 +245,13 @@ export abstract class DrawGraphicsTool implements ITool {
     let rect = {
       x: startX,
       y: startY,
-      width, // width may be negative
-      height, // height may be negative
+      width,
+      height,
     };
 
-    // whether to set the starting point as the center of the graphics
+    // [规则2][规则3] 修饰键修正：Shift 约束为正方形（取宽高较大值），Alt 从中心绘制，两者可同时生效
     const isStartPtAsCenter = this.editor.hostEventManager.isAltPressing;
-    // whether to keep the graphics square
     const keepSquare = this.editor.hostEventManager.isShiftPressing;
-
     let cx = 0;
     let cy = 0;
     if (isStartPtAsCenter) {
@@ -263,16 +265,15 @@ export abstract class DrawGraphicsTool implements ITool {
       cx = rect.x + rect.width / 2;
       cy = rect.y + rect.height / 2;
     }
-
     if (keepSquare) {
       rect = this.adjustSizeWhenShiftPressing(rect);
     }
-
     if (isStartPtAsCenter) {
       rect.x = cx - rect.width / 2;
       rect.y = cy - rect.height / 2;
     }
 
+    // 核心：已有图形则更新属性，没有则首次创建并加入场景树
     if (this.drawingGraphics) {
       this.updateGraphics(rect);
     } else {
@@ -288,7 +289,6 @@ export abstract class DrawGraphicsTool implements ITool {
       if (!graphics) {
         return;
       }
-
       sceneGraph.addItems([graphics]);
       parent.insertChild(graphics);
       if (frame) {
@@ -317,12 +317,12 @@ export abstract class DrawGraphicsTool implements ITool {
     if (this.editor.hostEventManager.isDraggingCanvasBySpace) {
       return;
     }
-
     const endPoint = SnapHelper.getSnapPtBySetting(
       this.editor.getSceneCursorXY(e),
       this.editor.setting,
     );
 
+    // [规则4] 单击兜底：未拖拽过则用默认宽高（100×100）在点击位置创建矩形，中心对齐光标
     if (this.drawingGraphics === null) {
       const { x: cx, y: cy } = endPoint;
       const width = this.editor.setting.get('drawGraphDefaultWidth');
@@ -359,6 +359,7 @@ export abstract class DrawGraphicsTool implements ITool {
       }
     }
 
+    // 命令入栈：不管是拖拽画的还是单击画的，统一记入撤销栈（pushCommand 只压栈不执行 redo）
     if (this.drawingGraphics) {
       this.editor.commandManager.pushCommand(
         new AddGraphCmd(this.commandDesc, this.editor, [this.drawingGraphics]),
@@ -366,6 +367,7 @@ export abstract class DrawGraphicsTool implements ITool {
     }
   }
 
+  // 收尾：重置拖拽状态，恢复删除/右键菜单，清参考线，可选切回 select 工具
   afterEnd() {
     this.isDragging = false;
     this.editor.hostEventManager.enableDelete();

@@ -268,34 +268,39 @@ export class ToolManager {
     this._unbindEvent = noop;
     this.unbindHotkey();
   }
+  // 切换工具：拦截非法切换 → 实例化新工具 → 停用旧工具 → 激活新工具 → 通知外部
   async setActiveTool(toolName: string) {
+    // 防御：拖拽中禁止切换 / 已经是当前工具 / 工具未启用 / 工具未注册
     if (!this.enableSwitchTool || this.getActiveToolName() === toolName) {
       return;
     }
-
     if (!this.enableToolTypes.includes(toolName)) {
       console.warn(`target tool "${toolName}" is not enable`);
       return;
     }
-
     const currentToolCtor = this.toolCtorMap.get(toolName) || null;
     if (!currentToolCtor) {
       throw new Error(`tool "${toolName}" is not registered`);
     }
+
+    // 核心：从注册表取构造函数，new 出工具实例（策略模式）
     const currentTool = new currentToolCtor(this.editor);
 
+    // 异步守卫：某些工具（如图片工具）激活前需要额外检查（如选择文件）
     if (currentTool.enableActive) {
       const canActive = await currentTool.enableActive();
       if (!canActive) {
         return;
       }
     }
+
+    // 新旧交替：停用旧工具 → 切光标 → 激活新工具 → 发事件通知 UI 更新
     const prevTool = this.currentTool;
     this.currentTool = currentTool;
-
     prevTool && prevTool.onInactive();
     this.setCursorWhenActive();
     currentTool.onActive();
+
     this.eventEmitter.emit('switchTool', currentTool.type);
   }
   on<K extends keyof Events>(eventName: K, handler: Events[K]) {
